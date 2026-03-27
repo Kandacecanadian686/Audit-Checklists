@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>macOS Audit Checklist</title>
+<style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f7f7f5;--bg3:#f0efe9;
+  --border:rgba(0,0,0,0.11);--border2:rgba(0,0,0,0.20);
+  --text:#1a1a18;--text2:#5a5a56;--text3:#8a8a84;
+  --mono:'Fira Mono','Cascadia Code','Consolas',monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --green:#1D9E75;--green-bg:#e1f5ee;
+  --purple-bg:#EEEDFE;--purple-text:#3C3489;
+  --amber-bg:#FAEEDA;--amber-text:#854F0B;
+  --blue-bg:#E6F1FB;--blue-text:#185FA5;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1c1c1a;--bg2:#252522;--bg3:#2e2e2b;
+    --border:rgba(255,255,255,0.09);--border2:rgba(255,255,255,0.18);
+    --text:#e8e6df;--text2:#a8a69f;--text3:#6a6a64;
+    --green-bg:#04342C;
+    --purple-bg:#26215C;--purple-text:#CECBF6;
+    --amber-bg:#2e2010;--amber-text:#fac775;
+    --blue-bg:#0e1e30;--blue-text:#85b7eb;
+  }
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.6}
+.page{max-width:860px;margin:0 auto;padding:32px 20px 120px}
+h1{font-size:19px;font-weight:600;margin-bottom:3px}
+.sub{font-size:12px;color:var(--text3);margin-bottom:20px}
+.tools-strip{background:var(--bg2);border:0.5px solid var(--border2);border-radius:8px;padding:14px 16px;margin-bottom:22px}
+.tools-strip h2{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+.tools-grid{display:flex;flex-direction:column;gap:7px}
+.tool-row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.tool-name{font-size:12px;font-weight:600;color:var(--text);min-width:90px;flex-shrink:0}
+.tool-desc{font-size:12px;color:var(--text2)}
+.tool-url{font-size:11px;color:var(--text3);font-family:var(--mono);word-break:break-all;padding-left:2px}
+.tool-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:9px;font-weight:500;background:var(--purple-bg);color:var(--purple-text);margin-left:4px;vertical-align:middle}
+.summary{display:flex;gap:10px;margin-bottom:18px;align-items:center;flex-wrap:wrap}
+.prog-wrap{flex:1;min-width:160px}
+.prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden;margin-bottom:4px}
+.prog-fill{height:4px;background:var(--green);border-radius:2px;transition:width .3s}
+.prog-lbl{font-size:11px;color:var(--text3)}
+.tbtn{font-size:11px;padding:5px 13px;border-radius:7px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--sans);white-space:nowrap}
+.tbtn:hover{background:var(--bg2)}
+.section-hdr{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;padding:20px 0 6px;border-bottom:0.5px solid var(--border);margin-bottom:2px}
+.step{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:0.5px solid var(--border)}
+.step.done .stitle{text-decoration:line-through;color:var(--text3)}
+.step-cb{width:16px;height:16px;min-width:16px;border-radius:4px;border:1.5px solid var(--border2);cursor:pointer;margin-top:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .12s}
+.step-cb:hover{border-color:var(--green)}
+.step-cb.on{background:var(--green);border-color:var(--green)}
+.step-cb.on::after{content:'';display:block;width:3px;height:6px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px)}
+.num{font-size:11px;color:var(--text3);min-width:22px;margin-top:3px;font-variant-numeric:tabular-nums;flex-shrink:0}
+.body{flex:1;min-width:0}
+.stitle{font-size:13px;font-weight:500;cursor:pointer;margin-bottom:3px}
+.stitle:hover{color:var(--green)}
+.why-text{font-size:12px;color:var(--text3);font-style:italic;margin-bottom:4px;line-height:1.5}
+.look{font-size:12px;color:var(--text2);margin-bottom:6px;line-height:1.5}
+.root-badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:9px;font-weight:500;background:var(--amber-bg);color:var(--amber-text);margin-left:6px;vertical-align:middle}
+.low-badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:9px;font-weight:500;background:var(--blue-bg);color:var(--blue-text);margin-left:6px;vertical-align:middle}
+.cmds{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
+.cmd-row{display:flex;gap:6px;align-items:flex-start}
+.cmd-cb{width:13px;height:13px;min-width:13px;border-radius:3px;border:1.5px solid var(--border2);cursor:pointer;margin-top:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .12s}
+.cmd-cb:hover{border-color:var(--green)}
+.cmd-cb.on{background:var(--green);border-color:var(--green)}
+.cmd-cb.on::after{content:'';display:block;width:2px;height:5px;border:1.5px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px)}
+.code{flex:1;font-family:var(--mono);font-size:11px;background:var(--bg3);border:0.5px solid var(--border);border-radius:5px;padding:5px 9px;line-height:1.6;word-break:break-all;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--text);display:block}
+.code.cmd-done{opacity:0.5;text-decoration:line-through}
+.cmt{font-size:11px;color:var(--text3);font-style:italic;padding:2px 0 1px 19px}
+.cpbtn{font-size:10px;padding:4px 9px;border-radius:5px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--sans);white-space:nowrap;flex-shrink:0;margin-top:1px}
+.cpbtn:hover{background:var(--bg2)}
+.cpbtn.ok{color:var(--green);border-color:var(--green)}
+.out-wrap{display:flex;flex-direction:column;gap:6px;margin-top:2px}
+.out-block{display:flex;flex-direction:column;gap:3px}
+.out-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+.output-field{width:100%;font-family:var(--mono);font-size:11px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:5px;padding:7px 9px;color:var(--text);resize:vertical;min-height:54px;line-height:1.6;outline:none;transition:border-color .15s;}
+.output-field:focus{border-color:var(--green)}
+.output-field::placeholder{color:var(--text3)}
+.action-bar{position:sticky;bottom:0;background:var(--bg);border-top:0.5px solid var(--border2);padding:12px 0;margin-top:24px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.export-btn{font-size:12px;font-weight:500;padding:7px 16px;border-radius:7px;border:0.5px solid var(--green);background:var(--green-bg);color:var(--green);cursor:pointer;font-family:var(--sans);white-space:nowrap;transition:all .15s}
+.export-btn:hover{background:var(--green);color:#fff}
+.import-btn{font-size:12px;font-weight:500;padding:7px 16px;border-radius:7px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--sans);white-space:nowrap}
+.import-btn:hover{background:var(--bg2)}
+.bar-note{font-size:11px;color:var(--text3);margin-left:4px}
+#import-input{display:none}
+@media print{
+  .action-bar,.cpbtn,.step-cb,.cmd-cb,.tbtn,.out-label button{display:none!important}
+  .step{break-inside:avoid}
+  .page{padding:16px;max-width:100%}
+  .output-field{border:0.5px solid #ccc;min-height:40px;resize:none}
+  .section-hdr{padding-top:12px}
+  h1{font-size:16px}
+  .tools-strip{border:0.5px solid #ccc}
+  a{color:inherit;text-decoration:none}
+}</style>
+</head>
+<body>
+<div class="page">
+  <h1>macOS Audit Checklist</h1>
+  <div class="sub">Steps in execution order. Check off as you go. Per-command checkboxes track individual execution. Output fields save automatically. Export to Markdown when done.</div>
+  <div class="tools-strip"><h2>Tools</h2><div class="tools-grid">
+<div class="tool-row"><span class="tool-name">Ventura/Sonoma built-in</span><span class="tool-desc">Most checks use native macOS tools — no additional software required for manual enumeration.</span><span class="tool-tag">Built-in</span></div>
+<div class="tool-row"><span class="tool-name">LockDown</span><span class="tool-desc">macOS security audit script — checks SIP, Gatekeeper, Firewall, FileVault, and TCC configuration.</span></div>
+<div class="tool-url">https://github.com/usnistgov/macos_security</div>
+<div class="tool-row"><span class="tool-name">osquery</span><span class="tool-desc">SQL-based OS instrumentation — query running processes, LaunchAgents, network connections, and file metadata.</span></div>
+<div class="tool-url">https://github.com/osquery/osquery</div>
+<div class="tool-row"><span class="tool-name">KnockKnock</span><span class="tool-desc">Enumerates persistent OS X software — LaunchAgents, LaunchDaemons, login items, and browser extensions.</span></div>
+<div class="tool-url">https://github.com/objective-see/KnockKnock</div>
+</div></div>
+  <div class="summary">
+    <div class="prog-wrap">
+      <div class="prog-bar"><div class="prog-fill" id="pf" style="width:0%"></div></div>
+      <div class="prog-lbl" id="pl">0 / 0 complete</div>
+    </div>
+    <button class="tbtn" onclick="resetAll()">Reset</button>
+  </div>
+  <div id="list"></div>
+  <div id="refs-section" style="margin-top:32px;padding-top:20px;border-top:0.5px solid var(--border2)">
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">References</div>
+    <div id="refs-list"></div>
+  </div>
+  <div class="action-bar">
+    <button class="export-btn" onclick="exportMd()">Export to Markdown</button>
+    <button class="export-btn" onclick="exportPdf()" style="background:var(--bg2);border-color:var(--border2);color:var(--text2)">Export to PDF</button>
+    <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:var(--text2);user-select:none">
+      <div id="redact-track" onclick="toggleRedact()" style="position:relative;width:32px;height:18px;background:var(--green);border-radius:9px;transition:background .2s;flex-shrink:0;cursor:pointer">
+        <span id="redact-thumb" style="position:absolute;top:2px;left:14px;width:14px;height:14px;background:#fff;border-radius:50%;transition:left .2s"></span>
+      </div>
+      Redact credentials on export
+    </label>
+    <button class="import-btn" onclick="document.getElementById('import-input').click()">Import Markdown</button>
+    <input type="file" id="import-input" accept=".md,text/markdown,text/plain" onchange="importMd(event)">
+    <span class="bar-note">Progress is auto-saved in browser on every change.</span>
+  </div>
+</div>
+<script>
+const TITLE='macOS Audit Checklist';
+const LS_KEY='macac1';
+const EXPORT_PREFIX='macos_audit';
+const HI_LABEL='Root';
+const TOOLS_DATA=[
+
+{tid:"t1",title:"System Profiler triage",priv:"low",
+why:"system_profiler collects a comprehensive snapshot of the macOS system configuration — hardware, software, network, and security settings. It is the macOS equivalent of systeminfo and provides the baseline for all subsequent checks.",
+cmds:[
+  {c:"system_profiler SPSoftwareDataType SPHardwareDataType"},
+  {c:"system_profiler SPSoftwareDataType | grep 'System Version\\|Kernel Version'"},
+  {c:"system_profiler SPSecureElementDataType 2>/dev/null"},
+  {c:"csrutil status"},
+  {c:"spctl --status"}
+]},
+{tid:"t2",title:"osquery enumeration",priv:"both",
+why:"osquery provides SQL access to OS data including running processes, open files, LaunchAgents, browser extensions, and network connections. Run as low-priv for user-context data and as root for system-wide triage.",
+cmds:[
+  {c:"osqueryi 'SELECT name, path, pid, start_time FROM processes ORDER BY start_time DESC LIMIT 20;' 2>/dev/null"},
+  {c:"osqueryi 'SELECT name, path, program_arguments, run_at_load FROM launchd ORDER BY name;' 2>/dev/null"},
+  {c:"osqueryi 'SELECT * FROM listening_ports;' 2>/dev/null"}
+]},
+
+];
+const DATA=[
+
+{section:"System & Identity"},
+{id:1,priv:"low",
+title:"Get system information and macOS version",
+why:"The macOS version determines which security features are available and which CVEs apply. Older macOS versions have known privilege escalation vulnerabilities and weaker SIP enforcement. System Integrity Protection (SIP) status is the most critical security indicator on macOS.",
+look:"Look for: macOS versions older than current-1 with known CVEs. SIP disabled — csrutil status returning 'disabled'. Kernel extensions loaded that indicate rootkits or unauthorised software. Unsigned kexts.",
+cmds:[
+  {c:"sw_vers"},
+  {c:"uname -a"},
+  {c:"csrutil status"},
+  {c:"system_profiler SPSoftwareDataType | grep 'System Version\\|Kernel Version\\|Boot Volume'"},
+  {c:"id && whoami && hostname"}
+]},
+{id:2,priv:"low",
+title:"Enumerate users, groups, and sudo rights",
+why:"macOS uses dscl for local directory service queries. sudo configuration on macOS often grants broad rights to wheel group members. Admin accounts have full sudo access by default — identifying all admin accounts is critical.",
+look:"Look for: All accounts with admin group membership. NOPASSWD sudo entries. Accounts with empty passwords. Hidden accounts (UID < 500 on older macOS). Accounts not visible in System Preferences.",
+cmds:[
+  {c:"id"},
+  {c:"sudo -l 2>/dev/null"},
+  {c:"dscl . list /Users | grep -v '^_'"},
+  {c:"dscl . -read /Groups/admin GroupMembership"},
+  {c:"dscl . -read /Groups/wheel GroupMembership 2>/dev/null"},
+  {c:"cat /etc/sudoers 2>/dev/null | grep -vE '^#|^$'"}
+]},
+{section:"Security Controls"},
+{id:3,priv:"low",
+title:"Check SIP, Gatekeeper, and FileVault status",
+why:"SIP (System Integrity Protection) prevents modification of protected system files and directories even as root. Gatekeeper enforces code signing requirements. FileVault provides full-disk encryption. Disabled or weakened versions of these controls significantly expand the attack surface.",
+look:"Look for: SIP disabled — csrutil status 'disabled'. Gatekeeper assessments disabled — spctl --status 'assessments disabled'. FileVault off — full disk readable if physical access obtained. Secure Boot disabled (Apple Silicon).",
+cmds:[
+  {c:"csrutil status"},
+  {c:"spctl --status"},
+  {c:"fdesetup status"},
+  {c:"nvram boot-args 2>/dev/null"},
+  {c:"system_profiler SPiBridgeDataType 2>/dev/null | grep -i 'secure boot\\|firmware'"}
+]},
+{id:4,priv:"low",
+title:"Check TCC (Transparency Consent and Control) configuration",
+why:"TCC controls application access to sensitive resources — camera, microphone, screen recording, full disk access, contacts, calendar, and location. Misconfigured or bypassed TCC protections allow data access without user consent. TCC database manipulation is a common persistence and privilege escalation technique.",
+look:"Look for: Applications with Full Disk Access that should not have it. TCC database located in a user-writable path. Applications with Screen Recording access. Terminal.app with Full Disk Access — allows reading protected directories.",
+cmds:[
+  {c:"sqlite3 /Library/Application\\ Support/com.apple.TCC/TCC.db 'SELECT client, service, auth_value FROM access WHERE auth_value=2;' 2>/dev/null"},
+  {c:"sqlite3 ~/Library/Application\\ Support/com.apple.TCC/TCC.db 'SELECT client, service, auth_value FROM access WHERE auth_value=2;' 2>/dev/null"},
+  {c:"tccutil list 2>/dev/null | head -30"},
+  {c:"ls -la /Library/Application\\ Support/com.apple.TCC/ 2>/dev/null"}
+]},
+{section:"Persistence"},
+{id:5,priv:"both",
+title:"Enumerate LaunchAgents and LaunchDaemons",
+why:"LaunchAgents run in the user session context; LaunchDaemons run as root at system boot. Both are primary persistence mechanisms on macOS. Malicious LaunchAgents are common in macOS malware and pentest persistence implants. Writable plist directories allow planting new agents.",
+look:"Look for: LaunchAgents/Daemons in user-writable directories. Plists pointing to scripts or binaries in /tmp, /var/tmp, or $HOME. Non-Apple plists with unusual names. Plists with RunAtLoad=true pointing to writable binaries.",
+cmds:[
+  {c:"ls -la ~/Library/LaunchAgents/ 2>/dev/null"},
+  {c:"ls -la /Library/LaunchAgents/ 2>/dev/null"},
+  {c:"ls -la /Library/LaunchDaemons/ 2>/dev/null"},
+  {c:"ls -la /System/Library/LaunchAgents/ 2>/dev/null | head -20"},
+  {c:"find ~/Library/LaunchAgents /Library/LaunchAgents /Library/LaunchDaemons -name '*.plist' 2>/dev/null | xargs grep -liE 'Program|ProgramArguments' 2>/dev/null | xargs grep -E '<string>' 2>/dev/null | grep -v '/System\\|/usr/bin\\|/usr/sbin\\|/usr/libexec' | head -20"}
+]},
+{id:6,priv:"low",
+title:"Check login items and startup software",
+why:"macOS login items are user-level persistence mechanisms that launch applications at login. Kernel extensions provide the deepest persistence — loaded at boot as root with kernel-level code execution. Both are common targets for malware persistence.",
+look:"Look for: Login items in unexpected locations or with unusual names. Kernel extensions from unknown developers. Login items pointing to binaries in user-writable directories.",
+cmds:[
+  {c:"osascript -e 'tell application \"System Events\" to get the name of every login item' 2>/dev/null"},
+  {c:"sfltool dumpbtm 2>/dev/null | grep -v '^$' | head -40"},
+  {c:"kextstat 2>/dev/null | grep -v 'com.apple'"},
+  {c:"ls -la /Library/Application\\ Support/com.apple.backgroundtaskmanagementagent/ 2>/dev/null"}
+]},
+{section:"Credential Hunting"},
+{id:7,priv:"low",
+title:"Check Keychain and stored credentials",
+why:"The macOS Keychain stores passwords, certificates, and private keys. The default login keychain is unlocked when the user logs in. Applications and scripts can access keychain items they have been granted permission for. The security CLI tool allows keychain enumeration and dumping with user interaction.",
+look:"Look for: Keychain items for internal services, VPN credentials, SSH keys. WiFi passwords stored in the system keychain. Application-specific passwords that may be reusable. Generic password entries with service names indicating internal infrastructure.",
+cmds:[
+  {c:"security list-keychains"},
+  {c:"security dump-keychain 2>/dev/null | grep -E 'acct|svce|labl|desc' | head -40"},
+  {c:"security find-generic-password -a $USER -s 'Chrome Safe Storage' -w 2>/dev/null"},
+  {c:"security find-internet-password -a $USER 2>/dev/null | grep -E 'acct|srvr|labl' | head -30"}
+]},
+{id:8,priv:"low",
+title:"Search for credentials in files and scripts",
+why:"Developers on macOS frequently store credentials in dotfiles, shell scripts, and configuration files in home directories. SSH private keys, API tokens, and cloud provider credentials are common finds.",
+look:"Look for: Private SSH keys in ~/.ssh/. AWS/GCP/Azure credential files. Environment files with API keys. Browser profile databases with stored passwords. Shell history with credentials passed as arguments.",
+cmds:[
+  {c:"ls -la ~/.ssh/ 2>/dev/null"},
+  {c:"cat ~/.bash_history ~/.zsh_history 2>/dev/null | grep -iE 'pass|token|secret|key' | head -20"},
+  {c:"find ~ -name '.env' -o -name 'id_rsa' -o -name '*.pem' 2>/dev/null | head -20"},
+  {c:"find ~ -name 'credentials' -path '*/.aws/*' 2>/dev/null | xargs cat 2>/dev/null"},
+  {c:"find ~/Library/Containers -name '*.sqlite' 2>/dev/null | head -10"}
+]},
+{section:"Network & Services"},
+{id:9,priv:"low",
+title:"Enumerate network interfaces and active connections",
+why:"macOS systems on internal networks may have access to management subnets, internal services, or VPN tunnels not visible from external networks. Active connections reveal what services the system is communicating with and what infrastructure is reachable.",
+look:"Look for: VPN interfaces indicating access to additional network segments. Active connections to internal management systems. Listening services not visible from the network (loopback only). Unusual outbound connections.",
+cmds:[
+  {c:"ifconfig"},
+  {c:"netstat -an | grep LISTEN"},
+  {c:"netstat -an | grep ESTABLISHED | head -20"},
+  {c:"route -n get default 2>/dev/null"},
+  {c:"cat /etc/hosts"}
+]},
+{id:10,priv:"low",
+title:"Check firewall and sharing services",
+why:"macOS firewall controls inbound connections. Application Firewall is not the same as packet-level firewall rules — it filters by application rather than port. Sharing services (Remote Login, Screen Sharing, File Sharing) enabled on internal machines expose attack surface.",
+look:"Look for: Firewall disabled. Remote Login (SSH) enabled — direct access if credentials found. Screen Sharing enabled — GUI remote access. File Sharing enabled — accessible SMB/AFP shares.",
+cmds:[
+  {c:"/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate"},
+  {c:"/usr/libexec/ApplicationFirewall/socketfilterfw --listapps 2>/dev/null | head -20"},
+  {c:"systemsetup -getremotelogin 2>/dev/null"},
+  {c:"sudo systemsetup -getremotedesktop 2>/dev/null"},
+  {c:"sharing -l 2>/dev/null"}
+]},
+
+{section:"Additional Checks"},
+];
+const REFS=[
+
+{cat:"Methodology",items:[
+  {title:"HackTricks — macOS Privilege Escalation",url:"https://book.hacktricks.wiki/en/macos-hardening/macos-privilege-escalation.html",desc:"macOS privilege escalation techniques covering TCC, SIP bypass, DYLD injection, and persistence."},
+  {title:"Objective-See — macOS Security Resources",url:"https://objective-see.org/",desc:"macOS security research, malware analysis, and free security tools from Patrick Wardle."},
+]},
+{cat:"TCC & SIP",items:[
+  {title:"TCC Bypass Techniques",url:"https://book.hacktricks.wiki/en/macos-hardening/macos-security-protections/macos-tcc/macos-tcc-bypasses/",desc:"Documented TCC bypass techniques and mitigations."},
+  {title:"SIP — Apple Documentation",url:"https://developer.apple.com/documentation/security/disabling_and_enabling_system_integrity_protection",desc:"Official Apple documentation on System Integrity Protection."},
+]},
+{cat:"Tools",items:[
+  {title:"KnockKnock",url:"https://github.com/objective-see/KnockKnock",desc:"macOS persistence mechanism enumeration."},
+  {title:"osquery",url:"https://github.com/osquery/osquery",desc:"SQL-based OS instrumentation for macOS, Linux, and Windows."},
+  {title:"macOS Security Compliance Project",url:"https://github.com/usnistgov/macos_security",desc:"NIST macOS security baseline and audit scripts."},
+]},
+
+];
+const TOTAL_STEPS=DATA.filter(s=>s.id).length;
+const TOTAL_TOOLS=TOOLS_DATA.filter(t=>t.tid).length;
+let state={},cmdState={},notes={};
+const CMD_STORE={};
+[...DATA,...TOOLS_DATA].forEach(s=>{
+  const key=s.id!==undefined?s.id:s.tid;if(!key)return;
+  (s.cmds||[]).forEach((item,idx)=>{if(item.c)CMD_STORE[key+'_'+idx]=item.c;});
+});
+
+function getCmdIndices(key){
+  const all=[...DATA,...TOOLS_DATA];
+  const s=all.find(x=>(x.id!==undefined?x.id:x.tid)==key);
+  if(!s||!s.cmds)return[];
+  return s.cmds.map((item,idx)=>({item,idx})).filter(({item})=>item.c).map(({idx})=>idx);
+}
+function setStepChecked(key,val){
+  state[key]=val;
+  const row=document.getElementById('row-'+key),cb=document.getElementById('scb-'+key);
+  if(row)row.classList.toggle('done',val);if(cb)cb.classList.toggle('on',val);
+}
+function setCmdChecked(key,idx,val){
+  const ckey=key+'_'+idx;cmdState[ckey]=val;
+  const cb=document.getElementById('ccb-'+ckey),code=document.getElementById('ccode-'+ckey);
+  if(cb)cb.classList.toggle('on',val);if(code)code.classList.toggle('cmd-done',val);
+}
+function tickStep(key){
+  const v=!state[key];setStepChecked(key,v);
+  getCmdIndices(key).forEach(idx=>setCmdChecked(key,idx,v));
+  updateBar();save();
+}
+function tickCmd(key,idx){
+  const ckey=key+'_'+idx,v=!cmdState[ckey];setCmdChecked(key,idx,v);
+  const ai=getCmdIndices(key);
+  if(ai.length>0){
+    if(ai.every(i=>!!cmdState[key+'_'+i])&&!state[key])setStepChecked(key,true);
+    if(!v&&state[key])setStepChecked(key,false);
+  }
+  updateBar();save();
+}
+function noteChange(nkey){notes[nkey]=document.getElementById('note-'+nkey).value;save();}
+function updateBar(){
+  const ds=DATA.filter(s=>s.id&&state[s.id]).length,dt=TOOLS_DATA.filter(t=>t.tid&&state[t.tid]).length;
+  const total=TOTAL_STEPS+TOTAL_TOOLS,done=ds+dt;
+  document.getElementById('pf').style.width=Math.round(done/total*100)+'%';
+  document.getElementById('pl').textContent=done+' / '+total+' complete ('+dt+' tools, '+ds+' checks)';
+}
+function cpCmd(btn){
+  const text=CMD_STORE[btn.dataset.ckey]||'';
+  navigator.clipboard.writeText(text).then(()=>{btn.textContent='Copied';btn.classList.add('ok');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('ok');},1400);}).catch(()=>{btn.textContent='Error';});
+}
+function resetAll(){
+  if(!confirm('Reset all checkboxes, command checkboxes, output notes, and additional checks?'))return;
+  state={};cmdState={};notes={};customChecks=[];
+  document.querySelectorAll('.step').forEach(el=>el.classList.remove('done'));
+  document.querySelectorAll('.step-cb').forEach(el=>el.classList.remove('on'));
+  document.querySelectorAll('.cmd-cb').forEach(el=>el.classList.remove('on'));
+  document.querySelectorAll('.code').forEach(el=>el.classList.remove('cmd-done'));
+  document.querySelectorAll('.output-field').forEach(el=>{el.value='';});
+  updateBar();save();renderCustomChecks();
+}
+let redactEnabled=true;
+function toggleRedact(){
+  redactEnabled=!redactEnabled;
+  const track=document.getElementById('redact-track'),thumb=document.getElementById('redact-thumb');
+  track.style.background=redactEnabled?'var(--green)':'var(--border2)';
+  thumb.style.left=redactEnabled?'14px':'2px';
+}
+function snip(val){if(!val||val.length<=8)return '<--- REDACTED --->';return val.slice(0,3)+'<--- REDACTED --->'+val.slice(-3);}
+function redactOutput(text){
+  if(!redactEnabled||!text||text==='(no output recorded)')return text;
+  text=text.replace(/(-----BEGIN [\w\s]+(KEY|CERTIFICATE|DSA|EC|RSA|OPENSSH PRIVATE KEY)-----\n)([\s\S]+?)(-----END [\w\s]+(KEY|CERTIFICATE|DSA|EC|RSA|OPENSSH PRIVATE KEY)-----)/g,(_,b,_t,body,e)=>{
+    const lines=body.split('\n').filter(l=>l.trim()!=='');
+    if(lines.length<=6)return b+lines.map(()=>'<--- REDACTED --->').join('\n')+'\n'+e;
+    return b+[...lines.slice(0,3),'<--- REDACTED -->',...lines.slice(-3)].join('\n')+'\n'+e;
+  });
+  return text.split('\n').map(line=>{
+    if(/^\s*#/.test(line)||line.includes('<--- REDACTED --->'))return line;
+    line=line.replace(/\b((?:password|passwd|secret|token|api[_\-]?key|access[_\-]?key|private[_\-]?key|auth[_\-]?token|bearer|jwt|credential|api[_\-]?secret|client[_\-]?secret|signing[_\-]?key|encryption[_\-]?key|db[_\-]?pass(?:word)?|database[_\-]?pass(?:word)?|mysql[_\-]?pass(?:word)?|mariadb[_\-]?pass(?:word)?|postgres[_\-]?pass(?:word)?|pgpassword|connectionstring|github[_\-]?token|gh[_\-]?token|aws[_\-]?secret|aws[_\-]?access)[_\-]?\w*)\s*[=:]\s*['"]?([^\s'"]{3,})['"]?/gi,(_,k,v)=>`${k}=${snip(v)}`);
+    line=line.replace(/"(password|passwd|secret|token|apikey|api_key|access_key|private_key|auth|bearer|credential|client_secret)"\s*:\s*"([^"]{3,})"/gi,(_,k,v)=>`"${k}": "${snip(v)}"`);
+    line=line.replace(/\b(AKIA[A-Z0-9]{16})\b/g,v=>snip(v));
+    if(/\b(?:auth|Authorization|Bearer)\b/i.test(line))line=line.replace(/([A-Za-z0-9+/]{30,}={0,2})/g,v=>snip(v));
+    line=line.replace(/\b(eyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+)\b/g,v=>snip(v));
+    return line;
+  }).join('\n');
+}
+function manualRedact(noteKey){
+  const el=document.getElementById('note-'+noteKey);if(!el)return;
+  const s=el.selectionStart,e=el.selectionEnd;
+  if(s===e){alert('Select the text you want to redact first.');return;}
+  el.value=el.value.substring(0,s)+snip(el.value.substring(s,e))+el.value.substring(e);
+  notes[noteKey]=el.value;save();
+}
+function manualRedactCustom(idx){
+  const el=document.getElementById('cnote-'+idx);if(!el)return;
+  const s=el.selectionStart,e=el.selectionEnd;
+  if(s===e){alert('Select the text you want to redact first.');return;}
+  el.value=el.value.substring(0,s)+snip(el.value.substring(s,e))+el.value.substring(e);
+  customChecks[idx].note=el.value;save();
+}
+function exportNote(raw){const text=(raw||'').trim()||'(no output recorded)';return redactEnabled?redactOutput(text):text;}
+function buildStep(s,n,isToolStep){
+  const key=s.id!==undefined?s.id:s.tid,done=!!state[key],pm=s.priv||'low';
+  let outHtml='<div class="out-wrap">';
+  if(pm==='both'){
+    const nkL=key+'_low',nkR=key+'_hi';
+    const vL=(notes[nkL]||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const vR=(notes[nkR]||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    outHtml+=`<div class="out-block"><div class="out-label" style="display:flex;align-items:center;justify-content:space-between">Output <span class="low-badge">Low-priv</span><button class="cpbtn" onclick="manualRedact('${nkL}')">Redact selection</button></div><textarea class="output-field" id="note-${nkL}" placeholder="Paste low-priv output..." oninput="noteChange('${nkL}')">${vL}</textarea></div>`;
+    outHtml+=`<div class="out-block"><div class="out-label" style="display:flex;align-items:center;justify-content:space-between">Output <span class="root-badge">${HI_LABEL}</span><button class="cpbtn" onclick="manualRedact('${nkR}')">Redact selection</button></div><textarea class="output-field" id="note-${nkR}" placeholder="Paste ${HI_LABEL.toLowerCase()} output..." oninput="noteChange('${nkR}')">${vR}</textarea></div>`;
+  } else if(pm==='hi'){
+    const nk=key+'_hi';
+    const v=(notes[nk]||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    outHtml+=`<div class="out-block"><div class="out-label" style="display:flex;align-items:center;justify-content:space-between">Output <span class="root-badge">${HI_LABEL}</span><button class="cpbtn" onclick="manualRedact('${nk}')">Redact selection</button></div><textarea class="output-field" id="note-${nk}" placeholder="Paste ${HI_LABEL.toLowerCase()} output..." oninput="noteChange('${nk}')">${v}</textarea></div>`;
+  } else {
+    const nk=key+'_low';
+    const v=(notes[nk]||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    outHtml+=`<div class="out-block"><div class="out-label" style="display:flex;align-items:center;justify-content:space-between">Output <span class="low-badge">Low-priv</span><button class="cpbtn" onclick="manualRedact('${nk}')">Redact selection</button></div><textarea class="output-field" id="note-${nk}" placeholder="Paste output here..." oninput="noteChange('${nk}')">${v}</textarea></div>`;
+  }
+  outHtml+='</div>';
+  const badge=pm==='hi'?`<span class="root-badge">${HI_LABEL} required</span>`:pm==='both'?'<span class="root-badge">Run as both</span>':'';
+  const numLabel=isToolStep?'':`<span class="num">${String(n).padStart(2,'0')}</span>`;
+  let cmdsHtml='<div class="cmds">';
+  (s.cmds||[]).forEach((item,idx)=>{
+    if(item.comment){cmdsHtml+=`<div class="cmt"># ${item.comment}</div>`;}
+    else{
+      const ckey=key+'_'+idx,cdone=!!cmdState[ckey];
+      const esc=item.c.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      cmdsHtml+=`<div class="cmd-row"><div class="cmd-cb${cdone?' on':''}" id="ccb-${ckey}" onclick="tickCmd('${key}',${idx})"></div><code class="code${cdone?' cmd-done':''}" id="ccode-${ckey}">${esc}</code><button class="cpbtn" data-ckey="${ckey}" onclick="cpCmd(this)">Copy</button></div>`;
+    }
+  });
+  cmdsHtml+='</div>';
+  return `<div class="step${done?' done':''}" id="row-${key}"><div class="step-cb${done?' on':''}" id="scb-${key}" onclick="tickStep('${key}')"></div>${numLabel}<div class="body"><div class="stitle" onclick="tickStep('${key}')">${s.title}${badge}</div>${s.why?`<div class="why-text">${s.why}</div>`:''}${s.look?`<div class="look">${s.look}</div>`:''} ${cmdsHtml}${outHtml}</div></div>`;
+}
+function render(){
+  const el=document.getElementById('list');let html='';
+  html+='<div class="section-hdr">Tools</div>';
+  TOOLS_DATA.forEach(t=>{if(!t.tid)return;html+=buildStep(t,0,true);});
+  let n=0;
+  DATA.forEach(s=>{
+    if(s.section){html+=`<div class="section-hdr">${s.section}</div>`;if(s.section==='Additional Checks')html+='<div id="custom-checks"></div>';return;}
+    n++;html+=buildStep(s,n,false);
+  });
+  el.innerHTML=html;
+}
+function renderRefs(){
+  const el=document.getElementById('refs-list');let html='';
+  REFS.forEach(cat=>{
+    html+=`<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:500;color:var(--text2);margin-bottom:6px">${cat.cat}</div><div style="display:flex;flex-direction:column;gap:4px">`;
+    cat.items.forEach(ref=>{html+=`<div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><a href="${ref.url}" target="_blank" style="font-size:12px;color:var(--green);text-decoration:none;white-space:nowrap;flex-shrink:0">${ref.title}</a><span style="font-size:11px;color:var(--text3)">— ${ref.desc}</span></div>`;});
+    html+=`</div></div>`;
+  });
+  el.innerHTML=html;
+}
+let customChecks=[];
+function addCustomCheck(){customChecks.push({title:'',note:'',done:false});save();renderCustomChecks();}
+function removeCustomCheck(idx){customChecks.splice(idx,1);save();renderCustomChecks();}
+function customTitleChange(idx){customChecks[idx].title=document.getElementById('ctitle-'+idx).value;save();}
+function customNoteChange(idx){customChecks[idx].note=document.getElementById('cnote-'+idx).value;save();}
+function tickCustom(idx){
+  customChecks[idx].done=!customChecks[idx].done;
+  document.getElementById('crow-'+idx).classList.toggle('done',customChecks[idx].done);
+  document.getElementById('ccbm-'+idx).classList.toggle('on',customChecks[idx].done);save();
+}
+function renderCustomChecks(){
+  const el=document.getElementById('custom-checks');if(!el)return;
+  let html='';
+  customChecks.forEach((cc,idx)=>{
+    const st=cc.title.replace(/"/g,'&quot;'),sn=cc.note.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    html+=`<div class="step${cc.done?' done':''}" id="crow-${idx}" style="flex-direction:column;align-items:stretch;gap:6px;padding:10px 0"><div style="display:flex;gap:10px;align-items:flex-start"><div class="step-cb${cc.done?' on':''}" id="ccbm-${idx}" onclick="tickCustom(${idx})" style="margin-top:6px;flex-shrink:0"></div><input type="text" id="ctitle-${idx}" value="${st}" placeholder="Check title..." style="flex:1;font-size:13px;font-weight:500;font-family:var(--sans);background:transparent;border:none;border-bottom:0.5px solid var(--border2);padding:4px 0;color:var(--text);outline:none" oninput="customTitleChange(${idx})"><button onclick="removeCustomCheck(${idx})" style="font-size:10px;padding:3px 8px;border-radius:5px;border:0.5px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-family:var(--sans);flex-shrink:0">Remove</button></div><div style="padding-left:26px"><div class="out-label" style="margin-bottom:4px;display:flex;align-items:center;justify-content:space-between">Notes / Output<button class="cpbtn" onclick="manualRedactCustom(${idx})">Redact selection</button></div><textarea class="output-field" id="cnote-${idx}" placeholder="Describe the check, commands used, and findings..." oninput="customNoteChange(${idx})">${sn}</textarea></div></div>`;
+  });
+  html+=`<div style="padding:10px 0 4px"><button onclick="addCustomCheck()" style="font-size:12px;padding:6px 14px;border-radius:7px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--sans)">+ Add check</button></div>`;
+  el.innerHTML=html;
+}
+function save(){try{localStorage.setItem(LS_KEY,JSON.stringify({state,cmdState,notes,customChecks}));}catch(e){}}
+function load(){try{const raw=localStorage.getItem(LS_KEY);if(raw){const d=JSON.parse(raw);state=d.state||{};cmdState=d.cmdState||{};notes=d.notes||{};customChecks=d.customChecks||[];}}catch(e){}}
+function exportMd(){
+  const now=new Date(),ts=now.toISOString().replace('T',' ').substring(0,16);
+  let md=`# ${TITLE} — Report\n\n**Date:** ${ts}\n\n`;
+  const ti=DATA.filter(s=>s.id).length+TOOLS_DATA.filter(t=>t.tid).length;
+  const di=[...DATA,...TOOLS_DATA].filter(s=>(s.id||s.tid)&&state[s.id||s.tid]).length;
+  md+=`**Progress:** ${di} / ${ti} complete\n\n**Credential redaction:** ${redactEnabled?'Enabled':'Disabled'}\n\n---\n\n`;
+  md+=`## Tools\n\n`;
+  TOOLS_DATA.forEach(t=>{
+    if(!t.tid)return;
+    const checked=state[t.tid]?'[x]':'[ ]';
+    md+=`### ${checked} Tool — ${t.title}\n\n`;
+    if(t.why)md+=`**Why:** ${t.why}\n\n`;
+    const co=(t.cmds||[]).filter(i=>i.c);
+    if(co.length){md+=`**Commands:**\n\n`;co.forEach((item,idx)=>{const run=cmdState[t.tid+'_'+idx]?'[x]':'[ ]';md+=`- ${run} \`${item.c}\`\n`;});md+='\n';}
+    const pm=t.priv||'low';
+    if(pm==='both'){md+=`**Output (low-priv):**\n\n\`\`\`\n${exportNote(notes[t.tid+'_low'])}\n\`\`\`\n\n**Output (${HI_LABEL.toLowerCase()}):**\n\n\`\`\`\n${exportNote(notes[t.tid+'_hi'])}\n\`\`\`\n\n`;}
+    else{const nk=t.tid+(pm==='hi'?'_hi':'_low');md+=`**Output (${pm==='hi'?HI_LABEL.toLowerCase():'low-priv'}):**\n\n\`\`\`\n${exportNote(notes[nk])}\n\`\`\`\n\n`;}
+  });
+  let sn=0;
+  DATA.forEach(s=>{
+    if(s.section){md+=`## ${s.section}\n\n`;return;}
+    sn++;const checked=state[s.id]?'[x]':'[ ]';
+    md+=`### ${checked} Step ${String(sn).padStart(2,'0')} — ${s.title}\n\n`;
+    if(s.why)md+=`**Why:** ${s.why}\n\n`;
+    if(s.look)md+=`**Look for:** ${s.look}\n\n`;
+    const pm=s.priv||'low';
+    md+=`**Access:** ${pm==='hi'?HI_LABEL+' required':pm==='both'?'Run as both':'Low-priv'}\n\n`;
+    const co=s.cmds.filter(i=>i.c);
+    if(co.length){md+=`**Commands:**\n\n`;co.forEach((item,idx)=>{const run=cmdState[s.id+'_'+idx]?'[x]':'[ ]';md+=`- ${run} \`${item.c}\`\n`;});md+='\n';}
+    if(pm==='both'){md+=`**Output (low-priv):**\n\n\`\`\`\n${exportNote(notes[s.id+'_low'])}\n\`\`\`\n\n**Output (${HI_LABEL.toLowerCase()}):**\n\n\`\`\`\n${exportNote(notes[s.id+'_hi'])}\n\`\`\`\n\n`;}
+    else{const nk=s.id+(pm==='hi'?'_hi':'_low');md+=`**Output (${pm==='hi'?HI_LABEL.toLowerCase():'low-priv'}):**\n\n\`\`\`\n${exportNote(notes[nk])}\n\`\`\`\n\n`;}
+  });
+  if(customChecks.length>0){
+    md+=`## Additional Checks\n\n`;
+    customChecks.forEach((cc,idx)=>{const checked=cc.done?'[x]':'[ ]';md+=`### ${checked} Custom ${String(idx+1).padStart(2,'0')} — ${cc.title||'(untitled)'}\n\n**Notes / Output:**\n\n\`\`\`\n${exportNote(cc.note)}\n\`\`\`\n\n`;});
+  }
+  md+=`---\n\n## References\n\n`;
+  REFS.forEach(cat=>{md+=`### ${cat.cat}\n\n`;cat.items.forEach(ref=>{md+=`- **[${ref.title}](${ref.url})** — ${ref.desc}\n`;});md+='\n';});
+  const blob=new Blob([md],{type:'text/markdown'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=`${EXPORT_PREFIX}_${now.toISOString().substring(0,10)}${redactEnabled?'_redacted':'_raw'}.md`;
+  a.click();URL.revokeObjectURL(url);
+}
+function exportPdf(){
+  const date=new Date().toISOString().substring(0,10),suffix=redactEnabled?'_redacted':'_raw';
+  const prevTitle=document.title;document.title=`${EXPORT_PREFIX}_${date}${suffix}`;
+  const replacements=[];
+  document.querySelectorAll('textarea.output-field').forEach(ta=>{
+    const raw=ta.value||'',content=redactEnabled?(redactOutput(raw)||raw):raw;
+    const div=document.createElement('div');div.setAttribute('data-print-field','1');div.textContent=content||'(no output recorded)';
+    ta.parentNode.insertBefore(div,ta);ta.style.display='none';replacements.push({div,ta});
+  });
+  const style=document.createElement('style');style.id='print-inject';
+  style.textContent=`@media print{[data-print-field]{display:block!important;white-space:pre-wrap!important;word-break:break-all!important;font-family:'Fira Mono','Consolas',monospace!important;font-size:10px!important;line-height:1.5!important;padding:6px 8px!important;border:0.5px solid #ccc!important;border-radius:4px!important;background:#f7f7f5!important;color:#1a1a18!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;page-break-inside:auto!important;}}`;
+  document.head.appendChild(style);
+  setTimeout(()=>{
+    window.print();document.title=prevTitle;
+    replacements.forEach(({div,ta})=>{ta.style.display='';div.remove();});
+    const inj=document.getElementById('print-inject');if(inj)inj.remove();
+  },120);
+}
+function importMd(event){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const text=e.target.result;let imported=0;
+    const stepRe=/###\s+\[x\]\s+(?:Step\s+\d+\s+—\s+(.+)|Tool\s+—\s+(.+))/g;let m;
+    while((m=stepRe.exec(text))!==null){
+      const title=(m[1]||m[2]).trim();
+      const found=[...DATA,...TOOLS_DATA].find(s=>s.title&&s.title.trim()===title);
+      if(found){const k=found.id!==undefined?found.id:found.tid;state[k]=true;imported++;}
+    }
+    const cmdRe=/^-\s+\[x\]\s+`(.+)`$/gm;
+    while((m=cmdRe.exec(text))!==null){const cmd=m[1].trim();for(const[ckey,val]of Object.entries(CMD_STORE)){if(val.trim()===cmd){cmdState[ckey]=true;break;}}}
+    const outRe=/###\s+(?:\[.\])\s+(?:Step\s+\d+\s+—\s+(.+)|Tool\s+—\s+(.+))[\s\S]*?\*\*Output\s*\(?(low-priv|[a-z]+)\)?[:\s]*\*\*\s*\n+```\n([\s\S]*?)```/g;
+    while((m=outRe.exec(text))!==null){
+      const title=(m[1]||m[2]).trim(),type=m[3],content=m[4].trim();
+      if(content==='(no output recorded)')continue;
+      const found=[...DATA,...TOOLS_DATA].find(s=>s.title&&s.title.trim()===title);
+      if(found){const k=found.id!==undefined?found.id:found.tid;notes[k+(type==='low-priv'?'_low':'_hi')]=content;}
+    }
+    const customRe=/###\s+(\[.\])\s+Custom\s+\d+\s+—\s*(.*)\n[\s\S]*?\*\*Notes \/ Output:\*\*\s*\n+```\n([\s\S]*?)```/g;
+    customChecks=[];
+    while((m=customRe.exec(text))!==null){
+      const done=m[1]==='[x]',title=m[2].trim(),note=m[3].trim()==='(no output recorded)'?'':m[3].trim();
+      customChecks.push({title,note,done});
+    }
+    save();render();renderCustomChecks();updateBar();
+    Object.entries(notes).forEach(([nk,val])=>{const el=document.getElementById('note-'+nk);if(el)el.value=val;});
+    Object.entries(state).forEach(([k,v])=>{if(!v)return;const row=document.getElementById('row-'+k),cb=document.getElementById('scb-'+k);if(row)row.classList.add('done');if(cb)cb.classList.add('on');});
+    Object.entries(cmdState).forEach(([ckey,v])=>{if(!v)return;const cb=document.getElementById('ccb-'+ckey),code=document.getElementById('ccode-'+ckey);if(cb)cb.classList.add('on');if(code)code.classList.add('cmd-done');});
+    alert(`Import complete. Restored ${imported} step checkboxes, ${Object.keys(notes).length} output fields, and ${customChecks.length} additional checks.`);
+  };
+  reader.readAsText(file);event.target.value='';
+}
+
+load();render();renderRefs();renderCustomChecks();updateBar();
+</script>
+</body>
+</html>

