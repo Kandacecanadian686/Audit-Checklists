@@ -10,14 +10,14 @@ A collection of self-contained, offline security audit checklists for penetratio
 
 | Checklist | Target | Checks | Tools |
 |---|---|---|---|
-| [Docker](docker_audit_checklist.html) | Docker container environments | 34 | LinPEAS, DEEPCE, CDK, pspy, Lynis |
-| [Windows](windows_audit_checklist.html) | Windows hosts and jump hosts | 33 | WinPEAS, PowerUp, Seatbelt, SharpHound, Mimikatz, LaZagne |
-| [Linux](linux_audit_checklist.html) | Standalone Linux hosts | 12 | LinPEAS, pspy, Lynis |
-| [macOS](macos_audit_checklist.html) | macOS endpoints and jump hosts | 10 | osquery, KnockKnock |
-| [Azure](azure_audit_checklist.html) | Microsoft Azure cloud environments | 10 | ScoutSuite, ROADtools, AzureHound, PowerZure |
 | [AWS](aws_audit_checklist.html) | Amazon Web Services environments | 9 | ScoutSuite, Pacu, enumerate-iam, cloudsplaining |
+| [Azure](azure_audit_checklist.html) | Microsoft Azure cloud environments | 10 | ScoutSuite, ROADtools, AzureHound, PowerZure |
+| [Docker](docker_audit_checklist.html) | Docker container environments | 34 | LinPEAS, DEEPCE, CDK, pspy, Lynis |
 | [GCP](gcp_audit_checklist.html) | Google Cloud Platform environments | 8 | ScoutSuite, gcloud CLI, GCPBucketBrute |
 | [Kubernetes](kubernetes_audit_checklist.html) | Kubernetes clusters | 9 | kube-hunter, Trivy, kube-bench, kubectl-who-can |
+| [Linux](linux_audit_checklist.html) | Standalone Linux hosts | 12 | LinPEAS, pspy, Lynis |
+| [macOS](macos_audit_checklist.html) | macOS endpoints and jump hosts | 10 | osquery, KnockKnock |
+| [Windows](windows_audit_checklist.html) | Windows hosts and jump hosts | 33 | WinPEAS, PowerUp, Seatbelt, SharpHound, Mimikatz, LaZagne |
 
 ---
 
@@ -70,14 +70,14 @@ No build step, no dependencies, no server required. Each file is fully self-cont
 ```
 audit-checklists/
 ├── README.md
-├── docker_audit_checklist.html
-├── windows_audit_checklist.html
-├── linux_audit_checklist.html
-├── macos_audit_checklist.html
-├── azure_audit_checklist.html
 ├── aws_audit_checklist.html
+├── azure_audit_checklist.html
+├── docker_audit_checklist.html
 ├── gcp_audit_checklist.html
 ├── kubernetes_audit_checklist.html
+├── linux_audit_checklist.html
+├── macos_audit_checklist.html
+├── windows_audit_checklist.html
 └── assets/
     └── preview.png
 ```
@@ -88,14 +88,14 @@ audit-checklists/
 
 | Checklist | In Scope | Out of Scope |
 |---|---|---|
-| Docker | Container escape, socket abuse, namespace isolation, credential hunting inside containers | Kubernetes-specific workloads |
-| Windows | Local privilege escalation, AD enumeration, credential hunting, lateral movement prep | Domain controller compromise steps |
-| Linux | Standalone host privilege escalation, service enumeration, credential hunting | Container-specific checks (see Docker) |
-| macOS | TCC bypass, persistence, Keychain access, SIP status | iOS / mobile |
-| Azure | IAM, storage, Key Vault, IMDS, NSGs, conditional access | Azure DevOps, Intune |
 | AWS | IAM privesc, S3, EC2 IMDS, Lambda, Secrets Manager, CloudTrail | AWS-native container orchestration |
+| Azure | IAM, storage, Key Vault, IMDS, NSGs, conditional access | Azure DevOps, Intune |
+| Docker | Container escape, socket abuse, namespace isolation, credential hunting inside containers | Kubernetes-specific workloads |
 | GCP | IAM, GCS, GCE metadata, Cloud Functions, Secret Manager | GKE-specific checks (see Kubernetes) |
 | Kubernetes | RBAC, service account abuse, pod escape, kubelet API, etcd, network policies | Cloud provider IAM integration |
+| Linux | Standalone host privilege escalation, service enumeration, credential hunting | Container-specific checks (see Docker) |
+| macOS | TCC bypass, persistence, Keychain access, SIP status | iOS / mobile |
+| Windows | Local privilege escalation, AD enumeration, credential hunting, lateral movement prep | Domain controller compromise steps |
 
 ---
 
